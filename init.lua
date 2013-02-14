@@ -1,15 +1,28 @@
+treecapitator = {}
+
+-------------------------------------------Settings--------------------------------------------
+treecapitator.drop_items = true	--drop them / get them in the inventory
 local timber_nodenames={"default:jungletree","default:tree"}
 local leaves_nodenames={"default:leaves"}
 local size = 2	--2*size+1
+-----------------------------------------------------------------------------------------------
 
-minetest.register_on_dignode(function(pos, node)
+local function dropitem(item, posi, digger)
+	if treecapitator.drop_items then
+		minetest.env:add_item(posi, item)
+	else
+		digger:get_inventory():add_item('main', item)
+	end
+end
+
+minetest.register_on_dignode(function(pos, node, digger)
 	local i=1
 	while timber_nodenames[i]~=nil do	--trunk stuff
 		if node.name==timber_nodenames[i] then
 			np={x=pos.x, y=pos.y+1, z=pos.z}
 			while minetest.env:get_node(np).name==timber_nodenames[i] do
 				minetest.env:remove_node(np)
-				minetest.env:add_item(np, timber_nodenames[i])
+				dropitem(timber_nodenames[i], np, digger)
 				np={x=np.x, y=np.y+1, z=np.z}
 			end
 			for _, leaves in ipairs(leaves_nodenames) do	--definition of the leaves
@@ -21,7 +34,7 @@ minetest.register_on_dignode(function(pos, node)
 								itemstacks = minetest.get_node_drops(minetest.env:get_node(p).name)
 								for _, itemname in ipairs(itemstacks) do
 									if minetest.env:get_node(p).name ~= itemname then
-										minetest.env:add_item(p, itemname)	--drop the items
+										dropitem(itemname, p, digger)
 									end
 								end
 								minetest.env:remove_node(p)	--remove the leaves
@@ -34,3 +47,4 @@ minetest.register_on_dignode(function(pos, node)
 		i=i+1
 	end
 end)
+
