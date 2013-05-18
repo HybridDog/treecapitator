@@ -2,21 +2,27 @@ treecapitator = {}
 
 -------------------------------------------Settings--------------------------------------------
 treecapitator.drop_items = true	--drop them / get them in the inventory
-local	timber_nodenames = {"default:jungletree","default:tree"}
-local	leaves_nodenames = {"default:leaves","default:jungleleaves"}
-local	fruit_nodenames  = {"default:apple"}
+local	timber_nodenames = {"default:jungletree", "default:tree", "sumpf:tree"}
+local	leaves_nodenames = {"default:leaves", "default:jungleleaves", "sumpf:leaves"}
+local	fruit_nodenames  = {"default:apple", "sumpf:tree_horizontal"}
 local	size = 2	--2*size+1
 -----------------------------------------------------------------------------------------------
 
 local function dropitem(item, posi, digger)
-	if treecapitator.drop_items then
-		minetest.env:add_item(posi, item)
-	else
-		digger:get_inventory():add_item('main', item)
+	local inv = digger:get_inventory()
+	if (not treecapitator.drop_items)
+	and inv
+	and inv:room_for_item("main", item) then
+		inv:add_item("main", item)
+		return
 	end
+	minetest.env:add_item(posi, item)
 end
 
 minetest.register_on_dignode(function(pos, node, digger)
+    if digger:get_player_control().sneak then
+		return
+	end
 	local i=1
 	while timber_nodenames[i]~=nil do	--trunk stuff
 		if node.name==timber_nodenames[i] then
