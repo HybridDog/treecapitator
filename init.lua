@@ -8,7 +8,7 @@ treecapitator = {}
 
 
 -------------------------------------------Settings--------------------------------------------
-treecapitator.drop_items = true	--drop them / get them in the inventory
+treecapitator.drop_items = false	--drop them / get them in the inventory
 local trees_to_capitate = {--	trees	leaves	range	fruits
 	{{"default:jungletree"}, {"default:jungleleaves"}, 3, {}},
 	{{"default:tree"}, {"default:leaves"}, 2, {"default:apple"}},
