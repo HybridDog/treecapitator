@@ -1,3 +1,3 @@
 TODO:
-— remove some rubbish
 — add more trees
+— add more types of trees

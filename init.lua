@@ -1,21 +1,44 @@
 treecapitator = {}
 
------------------------------------------Old Settings------------------------------------------
---local	timber_nodenames = {"default:jungletree", "default:tree", "sumpf:tree"}
---local	leaves_nodenames = {"default:leaves", "default:jungleleaves", "sumpf:leaves"}
---local	fruit_nodenames  = {"default:apple", "sumpf:tree_horizontal"}
---local	size = 2	--2*size+1
 
+--------------------------------------Setting-----------------------------------------------
 
--------------------------------------------Settings--------------------------------------------
 treecapitator.drop_items = false	--drop them / get them in the inventory
-local trees_to_capitate = {--	trees	leaves	range	fruits
-	{{"default:jungletree"}, {"default:jungleleaves"}, 3, {}},
-	{{"default:tree"}, {"default:leaves"}, 2, {"default:apple"}},
-	{{"sumpf:tree", "sumpf:mossytree"}, {"sumpf:leaves"}, 3, {"sumpf:tree_horizontal"}},
-	{{"nyanland:mesetree", "nyanland:healstone"}, {"nyanland:meseleaves"}, 2, {"default:apple"}},
-}
------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------
+
+
+treecapitator.trees = {}
+treecapitator.num = 1
+
+ --replaces not defined stuff
+local function set_tree_defaults(tab)
+	if not tab.trees then
+		tab.trees = {"default:tree"}
+	end
+	if not tab.leaves then
+		tab.leaves = {"default:leaves"}
+	end
+	if not tab.range then
+		tab.range = 2
+	end
+	if not tab.fruits then
+		tab.fruits = {}
+	end
+	return tab
+end
+
+function treecapitator.register_tree(tab)
+	tab = set_tree_defaults(tab)
+	local num = treecapitator.num
+	treecapitator.trees[num] = tab
+	treecapitator.num = num+1
+end
+
+dofile(minetest.get_modpath("treecapitator").."/trees.lua")
+
+
+--------------------------------------------fcts----------------------------------------------
 
 local function dropitem(item, posi, digger)
 	local inv = digger:get_inventory()
@@ -25,81 +48,26 @@ local function dropitem(item, posi, digger)
 		inv:add_item("main", item)
 		return
 	end
-	minetest.env:add_item(posi, item)
+	minetest.add_item(posi, item)
 end
 
-local function gettree(trees, pos)
-	for _, tree in ipairs(trees) do
-		if minetest.env:get_node(pos).name == tree then
+local function table_contains(t, v)
+	for _,i in ipairs(t) do
+		if i == v then
 			return true
 		end
 	end
 	return false
 end
 
-local function findtree(pos, node)
-	for tr in ipairs(trees_to_capitate) do
-		for _, tree in ipairs(trees_to_capitate[tr][1]) do
-			if node.name == tree then
-				return true
-			end
+local function findtree(nodename)
+	for _,tr in ipairs(treecapitator.trees) do
+		if table_contains(tr.trees, nodename) then
+			return true
 		end
 	end
 	return false
 end
-
-local function find_near_tree(pos, range, trees)
-	--[[for a = -1,1,2 do
-		for i = 1,range*2,1 do
-			for l = -i+1, i, 1 do
-				m = {x=pos.x+i*a, y=pos.y, z=pos.z-l*a}
-				n = {x=pos.x+l*a, y=pos.y, z=pos.z+i*a}
-				for tr in ipairs(trees) do
-					if minetest.env:get_node(m).name == tr then
-						print(m.x)
-						return m
-					end
-					if minetest.env:get_node(n).name == tr then
-						print(n.x)
-						return n
-					end
-				end
-			end
-		end
-	end]]
-	for i = -range*2,range*2,1 do
-		for j = -range*2,range*2,1 do
-			m = {x=pos.x+i, y=pos.y, z=pos.z+j}
-			for tr in ipairs(trees) do
-				if minetest.env:get_node(m).name == tr then
-					print(m.x)
-					return m
-				end
-			end
-		end
-	end
-	return pos
-end
-
-local function change_range(pos, range, trees)
-	p = find_near_tree(pos, range, trees)
-	if p == pos then
-		return range
-	end
-	ap_x = math.abs(p.x)
-	if math.max(ap_x, math.abs(p.z)) == ap_x then
-		c = p.x
-	else
-		c = p.z
-	end
-	f = c - range
-	g = math.abs(c) - range
-	if g <= -1 then
-		return 0
-	end
-	return f
-end
-
 
 
 minetest.register_on_dignode(function(pos, node, digger)
@@ -107,26 +75,27 @@ minetest.register_on_dignode(function(pos, node, digger)
 		return
 	end
     if digger:get_player_control().sneak
-    or (not findtree(pos, node)) then
+    or (not findtree(node.name)) then
 		return
 	end
+	local t1 = os.clock()
 	local np = {x=pos.x, y=pos.y+1, z=pos.z}
-	for tr in ipairs(trees_to_capitate) do
-		while gettree(trees_to_capitate[tr][1], np) do
-			local tree = minetest.env:get_node(np).name
-			minetest.env:remove_node(np)
+	for _,tr in ipairs(treecapitator.trees) do
+		while table_contains(tr.trees, minetest.get_node(np).name) do
+			local tree = minetest.get_node(np).name
+			minetest.remove_node(np)
 			dropitem(tree, np, digger)
 			np.y = np.y+1
 		end
-		local leaves = trees_to_capitate[tr][2]
---		local range = change_range(pos, trees_to_capitate[tr][3], trees_to_capitate[tr][1])
-		local range = trees_to_capitate[tr][3]
-		local fruits = trees_to_capitate[tr][4]
+		local leaves = tr.leaves
+--		local range = change_range(pos, tr.range, tr.trees)
+		local range = tr.range
+		local fruits = tr.fruits
 		for i = -range,range,1 do	--definition of the leavesposition
 			for j = -range-1,range-1,1 do
 				for k = -range,range,1 do
 					p = {x=np.x+i, y=np.y+j, z=np.z+k}
-					nodename = minetest.env:get_node(p).name
+					nodename = minetest.get_node(p).name
 					local foundnode = false
 					for _, leaf in ipairs(leaves) do
 						if nodename == leaf then
@@ -136,16 +105,16 @@ minetest.register_on_dignode(function(pos, node, digger)
 									dropitem(itemname, p, digger)
 								end
 							end
-							minetest.env:remove_node(p)	--remove the leaves
+							minetest.remove_node(p)	--remove the leaves
 							foundnode = true
 							break
 						end
 					end
 					if not foundnode then
-						for _, fruit in ipairs(fruits) do
+						for _,fruit in ipairs(fruits) do
 							if nodename == fruit then
 								dropitem(fruit, p, digger)
-								minetest.env:remove_node(p)	--remove the fruit
+								minetest.remove_node(p)	--remove the fruit
 								break
 							end
 						end
@@ -154,6 +123,7 @@ minetest.register_on_dignode(function(pos, node, digger)
 			end
 		end
 	end
+	print(string.format("[treecapitator] tree capitated at ("..pos.x.."|"..pos.y.."|"..pos.z..") after ca. %.2fs", os.clock() - t1))
 end)
 
 print("[treecapitator] loaded")
