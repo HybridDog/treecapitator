@@ -40,16 +40,31 @@ dofile(minetest.get_modpath("treecapitator").."/trees.lua")
 
 --------------------------------------------fcts----------------------------------------------
 
-local function dropitem(item, posi, digger)
-	local inv = digger:get_inventory()
-	if (not treecapitator.drop_items)
-	and inv
-	and inv:room_for_item("main", item) then
-		inv:add_item("main", item)
-		return
+
+if treecapitator.drop_items then
+	function treecapitator.drop_leaf(pos, item, inv)
+		minetest.add_item(pos, item)
 	end
-	minetest.add_item(posi, item)
+
+	function treecapitator.destroy_node(pos, node, digger)
+		minetest.add_item(pos, node.name)
+		minetest.remove_node(pos)
+	end
+else
+	function treecapitator.drop_leaf(pos, item, inv)
+		if inv
+		and inv:room_for_item("main", item) then
+			inv:add_item("main", item)
+		else
+			minetest.add_item(pos, item)
+		end
+	end
+
+	function treecapitator.destroy_node(pos, node, digger)
+		minetest.node_dig(pos, node, digger)
+	end
 end
+
 
 local function table_contains(t, v)
 	for _,i in ipairs(t) do
@@ -82,27 +97,28 @@ minetest.register_on_dignode(function(pos, node, digger)
 	local np = {x=pos.x, y=pos.y+1, z=pos.z}
 	for _,tr in ipairs(treecapitator.trees) do
 		while table_contains(tr.trees, minetest.get_node(np).name) do
-			local tree = minetest.get_node(np).name
-			minetest.remove_node(np)
-			dropitem(tree, np, digger)
+			local tree = minetest.get_node(np)
+			treecapitator.destroy_node(np, tree, digger)
 			np.y = np.y+1
 		end
 		local leaves = tr.leaves
 --		local range = change_range(pos, tr.range, tr.trees)
 		local range = tr.range
 		local fruits = tr.fruits
+		local inv = digger:get_inventory()
 		for i = -range,range,1 do	--definition of the leavesposition
 			for j = -range-1,range-1,1 do
 				for k = -range,range,1 do
 					p = {x=np.x+i, y=np.y+j, z=np.z+k}
-					nodename = minetest.get_node(p).name
+					node = minetest.get_node(p)
+					nodename = node.name
 					local foundnode = false
 					for _, leaf in ipairs(leaves) do
 						if nodename == leaf then
 							local leaves_drops = minetest.get_node_drops(leaf)
 							for _, itemname in ipairs(leaves_drops) do
 								if itemname ~= leaf then
-									dropitem(itemname, p, digger)
+									treecapitator.drop_leaf(p, itemname, inv)
 								end
 							end
 							minetest.remove_node(p)	--remove the leaves
@@ -113,8 +129,7 @@ minetest.register_on_dignode(function(pos, node, digger)
 					if not foundnode then
 						for _,fruit in ipairs(fruits) do
 							if nodename == fruit then
-								dropitem(fruit, p, digger)
-								minetest.remove_node(p)	--remove the fruit
+								treecapitator.destroy_node(p, node, digger) --remove the fruit
 								break
 							end
 						end
