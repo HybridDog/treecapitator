@@ -47,7 +47,10 @@ if treecapitator.drop_items then
 	end
 
 	function treecapitator.destroy_node(pos, node, digger)
-		minetest.add_item(pos, node.name)
+		local drops = minetest.get_node_drops(node.name)
+		for _,item in ipairs(drops) do
+			minetest.add_item(pos, item)
+		end
 		minetest.remove_node(pos)
 	end
 else
