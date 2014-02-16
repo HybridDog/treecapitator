@@ -1,3 +1,4 @@
+local load_time_start = os.clock()
 treecapitator = {}
 
 
@@ -144,4 +145,4 @@ minetest.register_on_dignode(function(pos, node, digger)
 	print(string.format("[treecapitator] tree capitated at ("..pos.x.."|"..pos.y.."|"..pos.z..") after ca. %.2fs", os.clock() - t1))
 end)
 
-print("[treecapitator] loaded")
+print(string.format("[treecapitator] loaded after ca. %.2fs", os.clock() - load_time_start))
