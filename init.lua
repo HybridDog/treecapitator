@@ -95,6 +95,36 @@ local function findtree(nodename)
 	return false
 end
 
+local function find_next_trees(range, pos, trees)
+	local r = 2*range
+	local maxx, maxz = r, r
+	local minx, minz = -maxx, -maxz
+	for i = -r, r do
+		for j = -r, r do
+			for h = -1,1 do
+				if table.icontains(trees, minetest.get_node({x=pos.x+j, y=pos.y+h, z=pos.z+i}).name) then
+					if j > 0 then
+						maxx = math.min(maxx, j)
+					elseif j < 0 then
+						minx = math.max(minx, j)
+					end
+					if i > 0 then
+						maxz = math.min(maxz, i)
+					elseif i < 0 then
+						minz = math.max(minz, i)
+					end
+					break
+				end
+			end
+		end
+	end
+	maxx = maxx-range
+	maxz = maxz-range
+	minx = minx+range
+	minz = minz+range
+	return minx, minz, maxx, maxz
+end
+
 
 minetest.register_on_dignode(function(pos, node, digger)
 	if digger == nil then
@@ -130,11 +160,12 @@ minetest.register_on_dignode(function(pos, node, digger)
 			end
 --			local range = change_range(pos, tr.range, tr.trees)
 			local range = tr.range
+			local minx, minz, maxx, maxz = find_next_trees(range, pos, trees)
 			local inv = digger:get_inventory()
-			for i = -range, range do	--definition of the leavesposition
+			for i = minz, maxz do	--definition of the leavesposition
 				for j = -range-1, range-1 do
-					for k = -range, range do
-						local p = {x=np.x+i, y=np.y+j, z=np.z+k}
+					for k = minx, maxx do
+						local p = {x=np.x+k, y=np.y+j, z=np.z+i}
 						local node = minetest.get_node(p)
 						local nodename = node.name
 						local foundnode = false
