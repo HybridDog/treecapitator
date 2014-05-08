@@ -85,6 +85,17 @@ table.icontains = table.icontains or function(t, v)
 	return false
 end
 
+local function table_contains_pos(t, v)
+	for _,i in ipairs(t) do
+		if i.z == v.z
+		and i.y == v.y
+		and i.x == v.x then
+			return true
+		end
+	end
+	return false
+end
+
 local function findtree(nodename)
 	for _,tr in ipairs(treecapitator.trees) do
 		if table.icontains(tr.trees, nodename) then
@@ -95,13 +106,45 @@ local function findtree(nodename)
 end
 
 local function find_next_trees(range, pos, trees)
+	local tab,n = {},1
 	local r = 2*range
 	local maxx, maxz = r, r
 	local minx, minz = -maxx, -maxz
 	for i = -r, r do
 		for j = -r, r do
-			for h = -1,1 do
+			for h = r,-r,-1 do
 				if table.icontains(trees, minetest.get_node({x=pos.x+j, y=pos.y+h, z=pos.z+i}).name) then
+					for z = -range+i,range+i do	--fix here
+						for y = -range+h,range+h do
+							for x = -range+j,range+j do
+								--if math.abs(z) < range
+								--and math.abs(y) < range
+							--	and math.abs(x) < range then
+									tab[n] = {x=x, y=y, z=z}
+									n = n+1
+								--end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	local tab2,n = {},1
+	for z = -range,range do
+		for y = -range,range do
+			for x = -range,range do
+				local p = {x=x, y=y, z=z}
+				if not table_contains_pos(tab, p) then
+					tab2[n] = p
+					n = n+1
+				end
+			end
+		end
+	end
+	return tab2
+end
+--[[				if table.icontains(trees, minetest.get_node({x=pos.x+j, y=pos.y+h, z=pos.z+i}).name) then
 					if j > 0 then
 						maxx = math.min(maxx, j)
 					elseif j < 0 then
@@ -122,7 +165,7 @@ local function find_next_trees(range, pos, trees)
 	minx = minx+range
 	minz = minz+range
 	return minx, minz, maxx, maxz
-end
+end]]
 
 
 minetest.register_on_dignode(function(pos, node, digger)
@@ -152,34 +195,32 @@ minetest.register_on_dignode(function(pos, node, digger)
 			local fruits = tr.fruits
 			if table.icontains(leaves, nd.name)
 			or table.icontains(fruits, nd.name) then
+				np.y = np.y-1
 				for _,i in ipairs(tab) do
 					destroy_node(i[1], i[2], digger)
 				end
-	--			local range = change_range(pos, tr.range, tr.trees)
+				--local range = change_range(pos, tr.range, tr.trees)
 				local range = tr.range
-				local minx, minz, maxx, maxz = find_next_trees(range, pos, trees)
+				--local minx, minz, maxx, maxz = find_next_trees(range, pos, trees)
 				local inv = digger:get_inventory()
-				for i = minz, maxz do	--definition of the leavesposition
-					for j = -range-1, range-1 do
-						for k = minx, maxx do
-							local p = {x=np.x+k, y=np.y+j, z=np.z+i}
-							local node = minetest.get_node(p)
-							local nodename = node.name
-							local foundnode = false
-							for _, leaf in ipairs(leaves) do
-								if nodename == leaf then
-									remove_leaf(p, leaf, inv, node, digger)
-									foundnode = true
-									break
-								end
-							end
-							if not foundnode then
-								for _,fruit in ipairs(fruits) do
-									if nodename == fruit then
-										destroy_node(p, node, digger) --remove the fruit
-										break
-									end
-								end
+				local head_ps = find_next_trees(range, np, trees)--definition of the leavespositions
+				for _,i in ipairs(head_ps) do
+					local p = vector.add(np, i)
+					local node = minetest.get_node(p)
+					local nodename = node.name
+					local foundnode = false
+					for _, leaf in ipairs(leaves) do
+						if nodename == leaf then
+							remove_leaf(p, leaf, inv, node, digger)
+							foundnode = true
+							break
+						end
+					end
+					if not foundnode then
+						for _,fruit in ipairs(fruits) do
+							if nodename == fruit then
+								destroy_node(p, node, digger) --remove the fruit
+								break
 							end
 						end
 					end
