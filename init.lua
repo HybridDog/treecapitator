@@ -150,36 +150,35 @@ minetest.register_on_dignode(function(pos, node, digger)
 			end
 			local leaves = tr.leaves
 			local fruits = tr.fruits
-			if not table.icontains(leaves, nd.name)
-			and not table.icontains(fruits, nd.name) then
-				return
-			end
-			for _,i in ipairs(tab) do
-				destroy_node(i[1], i[2], digger)
-			end
---			local range = change_range(pos, tr.range, tr.trees)
-			local range = tr.range
-			local minx, minz, maxx, maxz = find_next_trees(range, pos, trees)
-			local inv = digger:get_inventory()
-			for i = minz, maxz do	--definition of the leavesposition
-				for j = -range-1, range-1 do
-					for k = minx, maxx do
-						local p = {x=np.x+k, y=np.y+j, z=np.z+i}
-						local node = minetest.get_node(p)
-						local nodename = node.name
-						local foundnode = false
-						for _, leaf in ipairs(leaves) do
-							if nodename == leaf then
-								remove_leaf(p, leaf, inv, node, digger)
-								foundnode = true
-								break
-							end
-						end
-						if not foundnode then
-							for _,fruit in ipairs(fruits) do
-								if nodename == fruit then
-									destroy_node(p, node, digger) --remove the fruit
+			if table.icontains(leaves, nd.name)
+			or table.icontains(fruits, nd.name) then
+				for _,i in ipairs(tab) do
+					destroy_node(i[1], i[2], digger)
+				end
+	--			local range = change_range(pos, tr.range, tr.trees)
+				local range = tr.range
+				local minx, minz, maxx, maxz = find_next_trees(range, pos, trees)
+				local inv = digger:get_inventory()
+				for i = minz, maxz do	--definition of the leavesposition
+					for j = -range-1, range-1 do
+						for k = minx, maxx do
+							local p = {x=np.x+k, y=np.y+j, z=np.z+i}
+							local node = minetest.get_node(p)
+							local nodename = node.name
+							local foundnode = false
+							for _, leaf in ipairs(leaves) do
+								if nodename == leaf then
+									remove_leaf(p, leaf, inv, node, digger)
+									foundnode = true
 									break
+								end
+							end
+							if not foundnode then
+								for _,fruit in ipairs(fruits) do
+									if nodename == fruit then
+										destroy_node(p, node, digger) --remove the fruit
+										break
+									end
 								end
 							end
 						end
