@@ -6,6 +6,12 @@ treecapitator = {}
 
 treecapitator.drop_items = false	--drop them / get them in the inventory
 treecapitator.drop_leaf = false
+treecapitator.default_tree = {	--replaces not defined stuff (see below)
+	trees = {"default:tree"},
+	leaves = {"default:leaves"},
+	range = 2,
+	fruits = {},
+}
 
 ---------------------------------------------------------------------------------------------
 
@@ -13,17 +19,10 @@ treecapitator.drop_leaf = false
 treecapitator.trees = {}
 local num = 1
 
- --replaces not defined stuff
-local function set_tree_defaults(tab)
-	tab.trees = tab.trees or {"default:tree"}
-	tab.leaves = tab.leaves or {"default:leaves"}
-	tab.range = tab.range or 2
-	tab.fruits = tab.fruits or {}
-	return tab
-end
-
 function treecapitator.register_tree(tab)
-	tab = set_tree_defaults(tab)
+	for name,value in pairs(treecapitator.default_tree) do
+		tab[name] = tab[name] or value	--replaces not defined stuff
+	end
 	treecapitator.trees[num] = tab
 	num = num+1
 end
