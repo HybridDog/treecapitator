@@ -105,23 +105,22 @@ local function findtree(nodename)
 	return false
 end
 
-local function find_next_trees(range, pos, trees)
-	local tab,n = {},1
+local function find_next_trees(range, pos, trees, leaves)
+	local tab = {}
 	local r = 2*range
-	local maxx, maxz = r, r
-	local minx, minz = -maxx, -maxz
-	--[[for i = -r, r do
+	for i = -r, r do
 		for j = -r, r do
 			for h = r,-r,-1 do
-				if table.icontains(trees, minetest.get_node({x=pos.x+j, y=pos.y+h, z=pos.z+i}).name) then
+				local p = {x=pos.x+j, y=pos.y+h, z=pos.z+i}
+				if table.icontains(trees, minetest.get_node(p).name)
+				and table.icontains(leaves, minetest.get_node({x=p.x, y=p.y+1, z=p.z}).name) then
 					for z = -range+i,range+i do	--fix here
 						for y = -range+h,range+h do
 							for x = -range+j,range+j do
-								--if math.abs(z) < range
-								--and math.abs(y) < range
-							--	and math.abs(x) < range then
-									tab[n] = {x=x, y=y, z=z}
-									n = n+1
+								--if math.abs(z) <= range
+								--and math.abs(y) <= range
+								--and math.abs(x) <= range then
+									tab[z.." "..y.." "..x] = true
 								--end
 							end
 						end
@@ -129,13 +128,13 @@ local function find_next_trees(range, pos, trees)
 				end
 			end
 		end
-	end]]
+	end
 	local tab2,n = {},1
 	for z = -range,range do
 		for y = -range,range do
 			for x = -range,range do
 				local p = {x=x, y=y, z=z}
-				if not table_contains_pos(tab, p) then
+				if not tab[z.." "..y.." "..x] then
 					tab2[n] = p
 					n = n+1
 				end
@@ -144,31 +143,14 @@ local function find_next_trees(range, pos, trees)
 	end
 	return tab2
 end
---[[				if table.icontains(trees, minetest.get_node({x=pos.x+j, y=pos.y+h, z=pos.z+i}).name) then
-					if j > 0 then
-						maxx = math.min(maxx, j)
-					elseif j < 0 then
-						minx = math.max(minx, j)
-					end
-					if i > 0 then
-						maxz = math.min(maxz, i)
-					elseif i < 0 then
-						minz = math.max(minz, i)
-					end
-					break
-				end
-			end
-		end
-	end
-	maxx = maxx-range
-	maxz = maxz-range
-	minx = minx+range
-	minz = minz+range
-	return minx, minz, maxx, maxz
-end]]
 
 
+local capitating = false	--necessary if minetest.node_dig is used
 minetest.register_on_dignode(function(pos, node, digger)
+	if capitating then
+		return
+	end
+	--minetest.chat_send_all("test0")	<— I used these to find my mistake
 	if digger == nil then
 		return
 	end
@@ -177,8 +159,9 @@ minetest.register_on_dignode(function(pos, node, digger)
 		return
 	end
 	local t1 = os.clock()
-	local np = {x=pos.x, y=pos.y+1, z=pos.z}
+	capitating = true
 	for _,tr in ipairs(treecapitator.trees) do
+		local np = {x=pos.x, y=pos.y+1, z=pos.z}
 		local nd = minetest.get_node(np)
 		local trees = tr.trees
 		local tree_found = table.icontains(trees, nd.name)
@@ -199,35 +182,24 @@ minetest.register_on_dignode(function(pos, node, digger)
 				for _,i in ipairs(tab) do
 					destroy_node(i[1], i[2], digger)
 				end
-				--local range = change_range(pos, tr.range, tr.trees)
 				local range = tr.range
-				--local minx, minz, maxx, maxz = find_next_trees(range, pos, trees)
 				local inv = digger:get_inventory()
-				local head_ps = find_next_trees(range, np, trees)--definition of the leavespositions
+				local head_ps = find_next_trees(range, np, trees, leaves)	--definition of the leavespositions
+				--minetest.chat_send_all("test1")
 				for _,i in ipairs(head_ps) do
 					local p = vector.add(np, i)
 					local node = minetest.get_node(p)
 					local nodename = node.name
-					local foundnode = false
-					for _, leaf in ipairs(leaves) do
-						if nodename == leaf then
-							remove_leaf(p, leaf, inv, node, digger)
-							foundnode = true
-							break
-						end
-					end
-					if not foundnode then
-						for _,fruit in ipairs(fruits) do
-							if nodename == fruit then
-								destroy_node(p, node, digger) --remove the fruit
-								break
-							end
-						end
+					if table.icontains(leaves, nodename) then
+						remove_leaf(p, leaf, inv, node, digger)
+					elseif table.icontains(fruits, nodename) then
+						destroy_node(p, node, digger)
 					end
 				end
 			end
 		end
 	end
+	capitating = false
 	print(string.format("[treecapitator] tree capitated at ("..pos.x.."|"..pos.y.."|"..pos.z..") after ca. %.2fs", os.clock() - t1))
 end)
 
