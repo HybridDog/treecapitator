@@ -105,23 +105,27 @@ local function findtree(nodename)
 	return false
 end
 
-local function find_next_trees(range, pos, trees, leaves)
+local function find_next_trees(pos, range, trees, leaves, fruits)
 	local tab = {}
 	local r = 2*range
 	for i = -r, r do
 		for j = -r, r do
 			for h = r,-r,-1 do
 				local p = {x=pos.x+j, y=pos.y+h, z=pos.z+i}
+				local leaf = minetest.get_node({x=p.x, y=p.y+1, z=p.z}).name
 				if table.icontains(trees, minetest.get_node(p).name)
-				and table.icontains(leaves, minetest.get_node({x=p.x, y=p.y+1, z=p.z}).name) then
+				and (
+					table.icontains(leaves, leaf)
+					or table.icontains(fruits, leaf)
+				) then
 					for z = -range+i,range+i do	--fix here
 						for y = -range+h,range+h do
 							for x = -range+j,range+j do
-								--if math.abs(z) <= range
-								--and math.abs(y) <= range
-								--and math.abs(x) <= range then
+								if math.abs(z) <= range
+								and math.abs(y) <= range
+								and math.abs(x) <= range then
 									tab[z.." "..y.." "..x] = true
-								--end
+								end
 							end
 						end
 					end
@@ -129,12 +133,13 @@ local function find_next_trees(range, pos, trees, leaves)
 			end
 		end
 	end
+	--minetest.chat_send_all(dump(tab))	<— I used these to find my mistake
 	local tab2,n = {},1
 	for z = -range,range do
 		for y = -range,range do
 			for x = -range,range do
-				local p = {x=x, y=y, z=z}
 				if not tab[z.." "..y.." "..x] then
+					local p = {x=x, y=y, z=z}
 					tab2[n] = p
 					n = n+1
 				end
@@ -150,7 +155,7 @@ minetest.register_on_dignode(function(pos, node, digger)
 	if capitating then
 		return
 	end
-	--minetest.chat_send_all("test0")	<— I used these to find my mistake
+	--minetest.chat_send_all("test0")	<— and this
 	if digger == nil then
 		return
 	end
@@ -184,8 +189,8 @@ minetest.register_on_dignode(function(pos, node, digger)
 				end
 				local range = tr.range
 				local inv = digger:get_inventory()
-				local head_ps = find_next_trees(range, np, trees, leaves)	--definition of the leavespositions
-				--minetest.chat_send_all("test1")
+				local head_ps = find_next_trees(np, range, trees, leaves, fruits)	--definition of the leavespositions
+				--minetest.chat_send_all("test1")	<— this too
 				for _,i in ipairs(head_ps) do
 					local p = vector.add(np, i)
 					local node = minetest.get_node(p)
