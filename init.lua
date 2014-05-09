@@ -110,7 +110,7 @@ local function find_next_trees(range, pos, trees)
 	local r = 2*range
 	local maxx, maxz = r, r
 	local minx, minz = -maxx, -maxz
-	for i = -r, r do
+	--[[for i = -r, r do
 		for j = -r, r do
 			for h = r,-r,-1 do
 				if table.icontains(trees, minetest.get_node({x=pos.x+j, y=pos.y+h, z=pos.z+i}).name) then
@@ -129,7 +129,7 @@ local function find_next_trees(range, pos, trees)
 				end
 			end
 		end
-	end
+	end]]
 	local tab2,n = {},1
 	for z = -range,range do
 		for y = -range,range do
