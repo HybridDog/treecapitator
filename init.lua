@@ -112,12 +112,16 @@ local function find_next_trees(pos, range, trees, leaves, fruits)
 		for j = -r, r do
 			for h = r,-r,-1 do
 				local p = {x=pos.x+j, y=pos.y+h, z=pos.z+i}
+
 				local leaf = minetest.get_node({x=p.x, y=p.y+1, z=p.z}).name
+				local leaf_found = table.icontains(leaves, leaf) or table.icontains(fruits, leaf)
+				if not leaf_found then
+					leaf = minetest.get_node({x=p.x, y=p.y, z=p.z+1}).name
+					leaf_found = table.icontains(leaves, leaf) or table.icontains(fruits, leaf)
+				end
+
 				if table.icontains(trees, minetest.get_node(p).name)
-				and (
-					table.icontains(leaves, leaf)
-					or table.icontains(fruits, leaf)
-				) then
+				and leaf_found then
 					for z = -range+i,range+i do	--fix here
 						for y = -range+h,range+h do
 							for x = -range+j,range+j do
@@ -181,9 +185,15 @@ minetest.register_on_dignode(function(pos, node, digger)
 			end
 			local leaves = tr.leaves
 			local fruits = tr.fruits
-			if table.icontains(leaves, nd.name)
-			or table.icontains(fruits, nd.name) then
-				np.y = np.y-1
+
+			np.y = np.y-1
+			local leaf_found = table.icontains(leaves, nd.name) or table.icontains(fruits, nd.name)
+			if not leaf_found then
+				local leaf = minetest.get_node({x=np.x, y=np.y, z=np.z+1}).name
+				leaf_found = table.icontains(leaves, leaf) or table.icontains(fruits, leaf)
+			end
+
+			if leaf_found then
 				for _,i in ipairs(tab) do
 					destroy_node(i[1], i[2], digger)
 				end
