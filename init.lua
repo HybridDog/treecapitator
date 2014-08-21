@@ -2,7 +2,7 @@ local load_time_start = os.clock()
 treecapitator = {}
 
 
---------------------------------------Setting-----------------------------------------------
+--------------------------------------Settings----------------------------------------------
 
 treecapitator.drop_items = false	--drop them / get them in the inventory
 treecapitator.drop_leaf = false
@@ -16,22 +16,16 @@ treecapitator.default_tree = {	--replaces not defined stuff (see below)
 ---------------------------------------------------------------------------------------------
 
 
+--the table where the trees are stored at
 treecapitator.trees = {}
-local num = 1
 
-function treecapitator.register_tree(tab)
-	for name,value in pairs(treecapitator.default_tree) do
-		tab[name] = tab[name] or value	--replaces not defined stuff
-	end
-	treecapitator.trees[num] = tab
-	num = num+1
-end
-
-dofile(minetest.get_modpath("treecapitator").."/trees.lua")
+--a table of trunks which couldn't be redefined
+treecapitator.rest_tree_nodes = {}
 
 
 --------------------------------------------fcts----------------------------------------------
 
+--definitions of functions for the destruction of nodes
 local destroy_node, drop_leaf, remove_leaf
 if treecapitator.drop_items then
 	function drop_leaf(pos, item, inv)
@@ -76,6 +70,7 @@ else
 	end
 end
 
+
 table.icontains = table.icontains or function(t, v)
 	for _,i in ipairs(t) do
 		if i == v then
@@ -85,26 +80,18 @@ table.icontains = table.icontains or function(t, v)
 	return false
 end
 
-local function table_contains_pos(t, v)
-	for _,i in ipairs(t) do
-		if i.z == v.z
-		and i.y == v.y
-		and i.x == v.x then
-			return true
-		end
+--tests if the node is a trunk
+local function findtree(node)
+	if node == 0 then
+		return true
+	end
+	if table.icontains(treecapitator.rest_tree_nodes, node.name) then
+		return true
 	end
 	return false
 end
 
-local function findtree(nodename)
-	for _,tr in ipairs(treecapitator.trees) do
-		if table.icontains(tr.trees, nodename) then
-			return true
-		end
-	end
-	return false
-end
-
+--returns positions for leaves allowed to be dug
 local function find_next_trees(pos, range, trees, leaves, fruits)
 	local tab = {}
 	local r = 2*range
@@ -122,7 +109,7 @@ local function find_next_trees(pos, range, trees, leaves, fruits)
 
 				if table.icontains(trees, minetest.get_node(p).name)
 				and leaf_found then
-					for z = -range+i,range+i do	--fix here
+					for z = -range+i,range+i do
 						for y = -range+h,range+h do
 							for x = -range+j,range+j do
 								if math.abs(z) <= range
@@ -154,8 +141,9 @@ local function find_next_trees(pos, range, trees, leaves, fruits)
 end
 
 
+--the function which is used for capitating
 local capitating = false	--necessary if minetest.node_dig is used
-minetest.register_on_dignode(function(pos, node, digger)
+local function capitate_tree(pos, node, digger)
 	if capitating then
 		return
 	end
@@ -163,15 +151,16 @@ minetest.register_on_dignode(function(pos, node, digger)
 	if digger == nil then
 		return
 	end
-    if digger:get_player_control().sneak
-    or not findtree(node.name) then
+	if digger:get_player_control().sneak
+	or not findtree(node) then
 		return
 	end
 	local t1 = os.clock()
 	capitating = true
+
+	local np = {x=pos.x, y=pos.y+1, z=pos.z}
+	local nd = minetest.get_node(np)
 	for _,tr in ipairs(treecapitator.trees) do
-		local np = {x=pos.x, y=pos.y+1, z=pos.z}
-		local nd = minetest.get_node(np)
 		local trees = tr.trees
 		local tree_found = table.icontains(trees, nd.name)
 		if tree_found then
@@ -216,6 +205,83 @@ minetest.register_on_dignode(function(pos, node, digger)
 	end
 	capitating = false
 	print(string.format("[treecapitator] tree capitated at ("..pos.x.."|"..pos.y.."|"..pos.z..") after ca. %.2fs", os.clock() - t1))
+end
+
+--adds trunks to rest_tree_nodes if they were overwritten by other mods
+local tmp_trees = {}
+local function test_overwritten(tree)
+	table.insert(tmp_trees, tree)
+end
+
+minetest.after(0, function()
+	for _,tree in pairs(tmp_trees) do
+		if not minetest.registered_nodes[tree].after_dig_node then
+			print("[treecapitator] Error: Overwriting "..tree.." went wrong.")
+			table.insert(treecapitator.rest_tree_nodes, tree)
+		end
+	end
+	tmp_trees = nil
 end)
+
+--tests if minetest.override_item is aviable
+local new_version = minetest.override_item and true
+
+if not new_version then
+	table.copy = table.copy or function(tab)
+		local tab2 = {}
+		for n,i in pairs(tab) do
+			tab2[n] = i
+		end
+		return tab2
+	end
+end
+
+--the function to register trees to become capitated
+local num = 1
+function treecapitator.register_tree(tab)
+	for name,value in pairs(treecapitator.default_tree) do
+		tab[name] = tab[name] or value	--replaces not defined stuff
+	end
+	treecapitator.trees[num] = tab
+	num = num+1
+
+	for _,tree in pairs(tab.trees) do
+		local data = minetest.registered_nodes[tree]
+		if not data then
+			print("[treecapitator] Info: "..tree.." isn't registered yet.")
+			table.insert(treecapitator.rest_tree_nodes, tree)
+		else
+			if data.after_dig_node then
+				print("[treecapitator] Info: "..tree.." already has an after_dig_node.")
+				table.insert(treecapitator.rest_tree_nodes, tree)
+			else
+				if new_version then
+					minetest.override_item(tree, {
+						after_dig_node = function(pos, _, _, digger)
+							capitate_tree(pos, 0, digger)
+						end
+					})
+				else
+					data = table.copy(data)
+					data.after_dig_node = function(pos, _, _, digger)
+						capitate_tree(pos, 0, digger)
+					end
+					minetest.register_node(":"..tree, data)
+				end
+				test_overwritten(tree)
+			end
+		end
+	end
+end
+
+dofile(minetest.get_modpath("treecapitator").."/trees.lua")
+
+---------------------------------------------------------------------------------------------
+
+
+--use register_on_dignode if trunks are left
+if treecapitator.rest_tree_nodes[1] then
+	minetest.register_on_dignode(capitate_tree)
+end
 
 print(string.format("[treecapitator] loaded after ca. %.2fs", os.clock() - load_time_start))
