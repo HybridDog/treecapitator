@@ -195,7 +195,7 @@ local function capitate_tree(pos, node, digger)
 					local node = minetest.get_node(p)
 					local nodename = node.name
 					if table.icontains(leaves, nodename) then
-						remove_leaf(p, leaf, inv, node, digger)
+						remove_leaf(p, nodename, inv, node, digger)
 					elseif table.icontains(fruits, nodename) then
 						destroy_node(p, node, digger)
 					end
