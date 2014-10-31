@@ -34,7 +34,7 @@ if treecapitator.drop_items then
 
 	function destroy_node(pos, node, digger)
 		local drops = minetest.get_node_drops(node.name)
-		for _,item in ipairs(drops) do
+		for _,item in pairs(drops) do
 			minetest.add_item(pos, item)
 		end
 		minetest.remove_node(pos)
@@ -57,7 +57,7 @@ end
 if not treecapitator.drop_leaf then
 	function remove_leaf(p, leaf, inv)
 		local leaves_drops = minetest.get_node_drops(leaf)
-		for _, itemname in ipairs(leaves_drops) do
+		for _, itemname in pairs(leaves_drops) do
 			if itemname ~= leaf then
 				drop_leaf(p, itemname, inv)
 			end
@@ -72,8 +72,8 @@ end
 
 
 table.icontains = table.icontains or function(t, v)
-	for _,i in ipairs(t) do
-		if i == v then
+	for i = 1,#t do
+		if t[i] == v then
 			return true
 		end
 	end
