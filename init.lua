@@ -204,7 +204,7 @@ local function capitate_tree(pos, node, digger)
 		end
 	end
 	capitating = false
-	print(string.format("[treecapitator] tree capitated at ("..pos.x.."|"..pos.y.."|"..pos.z..") after ca. %.2fs", os.clock() - t1))
+	minetest.log("info", string.format("[treecapitator] tree capitated at ("..pos.x.."|"..pos.y.."|"..pos.z..") after ca. %.2fs", os.clock() - t1))
 end
 
 --adds trunks to rest_tree_nodes if they were overwritten by other mods
@@ -216,7 +216,7 @@ end
 minetest.after(0, function()
 	for _,tree in pairs(tmp_trees) do
 		if not minetest.registered_nodes[tree].after_dig_node then
-			print("[treecapitator] Error: Overwriting "..tree.." went wrong.")
+			minetest.log("error", "[treecapitator] Error: Overwriting "..tree.." went wrong.")
 			table.insert(treecapitator.rest_tree_nodes, tree)
 		end
 	end
@@ -248,11 +248,11 @@ function treecapitator.register_tree(tab)
 	for _,tree in pairs(tab.trees) do
 		local data = minetest.registered_nodes[tree]
 		if not data then
-			print("[treecapitator] Info: "..tree.." isn't registered yet.")
+			minetest.log("info", "[treecapitator] Info: "..tree.." isn't registered yet.")
 			table.insert(treecapitator.rest_tree_nodes, tree)
 		else
 			if data.after_dig_node then
-				print("[treecapitator] Info: "..tree.." already has an after_dig_node.")
+				minetest.log("info", "[treecapitator] Info: "..tree.." already has an after_dig_node.")
 				table.insert(treecapitator.rest_tree_nodes, tree)
 			else
 				if new_version then
@@ -284,4 +284,4 @@ if treecapitator.rest_tree_nodes[1] then
 	minetest.register_on_dignode(capitate_tree)
 end
 
-print(string.format("[treecapitator] loaded after ca. %.2fs", os.clock() - load_time_start))
+minetest.log("info", string.format("[treecapitator] loaded after ca. %.2fs", os.clock() - load_time_start))
