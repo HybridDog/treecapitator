@@ -86,10 +86,7 @@ local function findtree(node)
 	if node == 0 then
 		return true
 	end
-	if table.icontains(treecapitator.rest_tree_nodes, node.name) then
-		return true
-	end
-	return false
+	return table.icontains(treecapitator.rest_tree_nodes, node.name)
 end
 
 --returns positions for leaves allowed to be dug
@@ -108,7 +105,8 @@ local function find_next_trees(pos, range, trees, leaves, fruits)
 					leaf_found = table.icontains(leaves, leaf) or table.icontains(fruits, leaf)
 				end
 
-				if table.icontains(trees, minetest.get_node(p).name)
+				local nd = minetest.get_node(p)
+				if table.icontains(trees, nd.name) and nd.param2 == 0
 				and leaf_found then
 					for z = -range+i,range+i do
 						for y = -range+h,range+h do
@@ -165,7 +163,7 @@ local function capitate_tree(pos, node, digger)
 	local nd = minetest.get_node(np)
 	for _,tr in ipairs(treecapitator.trees) do
 		local trees = tr.trees
-		local tree_found = table.icontains(trees, nd.name)
+		local tree_found = table.icontains(trees, nd.name) and nd.param2 == 0
 		if tree_found then
 			local tab, n = {}, 1
 			while tree_found do
@@ -173,7 +171,7 @@ local function capitate_tree(pos, node, digger)
 				n = n+1
 				np.y = np.y+1
 				nd = minetest.get_node(np)
-				tree_found = table.icontains(trees, nd.name)
+				tree_found = table.icontains(trees, nd.name) and nd.param2 == 0
 			end
 			local leaves = tr.leaves
 			local fruits = tr.fruits

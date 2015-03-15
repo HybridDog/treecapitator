@@ -5,6 +5,11 @@ treecapitator.register_tree({
 	range = <range>,
 	fruits = {<node1>, <node2>, ...},
 })
+
+trees:	the straight stem nodes with param2=0
+leaves:	nodes of the tree head which only drop their main item if drop_leaf is enabled
+range:	the size of the tree head
+fruits:	similar to leaves but without the drop_leaf setting condition
 ]]
 
 treecapitator.register_tree({
@@ -25,7 +30,7 @@ if minetest.get_modpath("sumpf") then
 		trees = {"sumpf:tree", "sumpf:mossytree"},
 		leaves = {"sumpf:leaves"},
 		range = 3,
-		fruits = {"sumpf:tree_horizontal"}
+		fruits = {"sumpf:tree"}
 	})
 end
 
