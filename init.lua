@@ -26,6 +26,7 @@ treecapitator.rest_tree_nodes = {}
 
 --------------------------------------------fcts----------------------------------------------
 
+-- don't use minetest.get_node more times for the same position
 local known_nodes = {}
 local function remove_node(pos)
 	known_nodes[pos.z .." "..pos.y .." "..pos.x] = {name="air", param2=0}
