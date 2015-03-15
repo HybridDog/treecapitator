@@ -98,22 +98,29 @@ local function find_next_trees(pos, range, trees, leaves, fruits)
 			for h = r,-r,-1 do
 				local p = {x=pos.x+j, y=pos.y+h, z=pos.z+i}
 
-				local leaf = minetest.get_node({x=p.x, y=p.y+1, z=p.z}).name
-				local leaf_found = table.icontains(leaves, leaf) or table.icontains(fruits, leaf)
-				if not leaf_found then
-					leaf = minetest.get_node({x=p.x, y=p.y, z=p.z+1}).name
-					leaf_found = table.icontains(leaves, leaf) or table.icontains(fruits, leaf)
-				end
-
+				-- tests if a trunk is at the current pos
 				local nd = minetest.get_node(p)
-				if table.icontains(trees, nd.name) and nd.param2 == 0
-				and leaf_found then
-					for z = -range+i,range+i do
-						for y = -range+h,range+h do
-							for x = -range+j,range+j do
-								if math.abs(z) <= range
-								and math.abs(y) <= range
-								and math.abs(x) <= range then
+				if table.icontains(trees, nd.name)
+				and nd.param2 == 0
+				and (pos.x ~= p.x or pos.z ~= p.z) then
+					-- search for a leaves or fruit node next to the trunk
+					local leaf = minetest.get_node({x=p.x, y=p.y+1, z=p.z}).name
+					local leaf_found = table.icontains(leaves, leaf) or table.icontains(fruits, leaf)
+					if not leaf_found then
+						leaf = minetest.get_node({x=p.x, y=p.y, z=p.z+1}).name
+						leaf_found = table.icontains(leaves, leaf) or table.icontains(fruits, leaf)
+					end
+
+					if leaf_found then
+						local z1 = math.max(-range+i, -range)
+						local z2 = math.min(range+i, range)
+						local y1 = math.max(-range+h, -range)
+						local y2 = math.min(range+h, range)
+						local x1 = math.max(-range+j, -range)
+						local x2 = math.min(range+j, range)
+						for z = z1,z2 do
+							for y = y1,y2 do
+								for x = x1,x2 do
 									tab[z.." "..y.." "..x] = true
 								end
 							end
@@ -143,13 +150,11 @@ end
 --the function which is used for capitating
 local capitating = false	--necessary if minetest.node_dig is used
 local function capitate_tree(pos, node, digger)
-	if capitating then
+	if capitating
+	or not digger then
 		return
 	end
 	--minetest.chat_send_all("test0")	<— and this
-	if digger == nil then
-		return
-	end
 	if digger:get_player_control().sneak
 	or not findtree(node) then
 		return
@@ -195,13 +200,17 @@ local function capitate_tree(pos, node, digger)
 					local p = vector.add(np, i)
 					local node = minetest.get_node(p)
 					local nodename = node.name
-					if table.icontains(leaves, nodename) then
-						remove_leaf(p, nodename, inv, node, digger)
-					elseif table.icontains(fruits, nodename) then
-						destroy_node(p, node, digger)
+					if not table.icontains(trees, nodename)
+					or node.param2 ~= 0 then
+						if table.icontains(leaves, nodename) then
+							remove_leaf(p, nodename, inv, node, digger)
+						elseif table.icontains(fruits, nodename) then
+							destroy_node(p, node, digger)
+						end
 					end
 				end
 			end
+			break
 		end
 	end
 	capitating = false
