@@ -4,8 +4,8 @@ treecapitator = {}
 
 --------------------------------------Settings----------------------------------------------
 
-treecapitator.drop_items = false	--drop them / get them in the inventory
-treecapitator.drop_leaf = false
+treecapitator.drop_items = true	--drop them / get them in the inventory
+treecapitator.drop_leaf = true
 treecapitator.default_tree = {	--replaces not defined stuff (see below)
 	trees = {"default:tree"},
 	leaves = {"default:leaves"},
@@ -157,8 +157,8 @@ local function capitate_tree(pos, node, digger)
 	end
 	local t1 = os.clock()
 	capitating = true
-
 	local np = {x=pos.x, y=pos.y+1, z=pos.z}
+	minetest.sound_play("tree_falling", {pos = np ,gain = 1.0,max_hear_distance = 32,loop = false,})
 	local nd = minetest.get_node(np)
 	for _,tr in ipairs(treecapitator.trees) do
 		local trees = tr.trees
