@@ -158,7 +158,6 @@ local function capitate_tree(pos, node, digger)
 	local t1 = os.clock()
 	capitating = true
 	local np = {x=pos.x, y=pos.y+1, z=pos.z}
-	minetest.sound_play("tree_falling", {pos = np ,gain = 1.0,max_hear_distance = 32,loop = false,})
 	local nd = minetest.get_node(np)
 	for _,tr in ipairs(treecapitator.trees) do
 		local trees = tr.trees
@@ -174,7 +173,6 @@ local function capitate_tree(pos, node, digger)
 			end
 			local leaves = tr.leaves
 			local fruits = tr.fruits
-
 			np.y = np.y-1
 			local leaf_found = table.icontains(leaves, nd.name) or table.icontains(fruits, nd.name)
 			if not leaf_found then
@@ -183,6 +181,7 @@ local function capitate_tree(pos, node, digger)
 			end
 
 			if leaf_found then
+				minetest.sound_play("tree_falling", {pos = np ,gain = 1.0,max_hear_distance = 32,loop = false,})
 				for _,i in ipairs(tab) do
 					destroy_node(i[1], i[2], digger)
 				end
