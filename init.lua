@@ -6,7 +6,7 @@ treecapitator = {}
 
 treecapitator.drop_items = false	--drop them / get them in the inventory
 treecapitator.drop_leaf = false
-treecapitator.play_sound = false
+treecapitator.play_sound = true
 treecapitator.default_tree = {	--replaces not defined stuff (see below)
 	trees = {"default:tree"},
 	leaves = {"default:leaves"},
@@ -31,6 +31,11 @@ local known_nodes = {}
 local function remove_node(pos)
 	known_nodes[pos.z .." "..pos.y .." "..pos.x] = {name="air", param2=0}
 	minetest.remove_node(pos)
+end
+
+local function dig_node(pos, node, digger)
+	known_nodes[pos.z .." "..pos.y .." "..pos.x] = {name="air", param2=0}
+	minetest.node_dig(pos, node, digger)
 end
 
 local function get_node(pos)
@@ -68,9 +73,7 @@ else
 		end
 	end
 
-	function destroy_node(pos, node, digger)
-		minetest.node_dig(pos, node, digger)
-	end
+	destroy_node = dig_node
 end
 
 if not treecapitator.drop_leaf then
