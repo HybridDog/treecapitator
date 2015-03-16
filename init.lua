@@ -184,7 +184,7 @@ local function capitate_tree(pos, node, digger)
 		minetest.sound_play("tree_falling", {pos = np, max_hear_distance = 32})
 	end
 	local nd = get_node(np)
-	for _,tr in ipairs(treecapitator.trees) do
+	for _,tr in pairs(treecapitator.trees) do
 		local trees = tr.trees
 		local tree_found = table.icontains(trees, nd.name) and nd.param2 == 0
 		if tree_found then
@@ -207,14 +207,14 @@ local function capitate_tree(pos, node, digger)
 			end
 
 			if leaf_found then
-				for _,i in ipairs(tab) do
+				for _,i in pairs(tab) do
 					destroy_node(i[1], i[2], digger)
 				end
 				local range = tr.range
 				local inv = digger:get_inventory()
 				local head_ps = find_next_trees(np, range, trees, leaves, fruits)	--definition of the leavespositions
 				--minetest.chat_send_all("test1")	<— this too
-				for _,i in ipairs(head_ps) do
+				for _,i in pairs(head_ps) do
 					local p = vector.add(np, i)
 					local node = get_node(p)
 					local nodename = node.name
