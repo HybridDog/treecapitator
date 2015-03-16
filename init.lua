@@ -180,9 +180,6 @@ local function capitate_tree(pos, node, digger)
 	local t1 = os.clock()
 	capitating = true
 	local np = {x=pos.x, y=pos.y+1, z=pos.z}
-	if treecapitator.play_sound then
-		minetest.sound_play("tree_falling", {pos = np, max_hear_distance = 32})
-	end
 	local nd = get_node(np)
 	for _,tr in pairs(treecapitator.trees) do
 		local trees = tr.trees
@@ -207,6 +204,9 @@ local function capitate_tree(pos, node, digger)
 			end
 
 			if leaf_found then
+				if treecapitator.play_sound then
+					minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
+				end
 				for _,i in pairs(tab) do
 					destroy_node(i[1], i[2], digger)
 				end
