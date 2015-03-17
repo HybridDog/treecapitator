@@ -25,15 +25,6 @@ treecapitator.register_tree({
 	range = 3
 })
 
-if minetest.get_modpath("sumpf") then
-	treecapitator.register_tree({
-		trees = {"sumpf:tree", "sumpf:mossytree"},
-		leaves = {"sumpf:leaves"},
-		range = 3,
-		fruits = {"sumpf:tree"}
-	})
-end
-
 if minetest.get_modpath("nyanland") then
 	treecapitator.register_tree({
 		trees = {"nyanland:mesetree", "nyanland:healstone"},
