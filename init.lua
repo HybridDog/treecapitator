@@ -230,8 +230,8 @@ local function capitate_tree(pos, node, digger)
 						end
 					end
 				end
+				break
 			end
-			break
 		end
 	end
 	known_nodes = {}
