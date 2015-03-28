@@ -20,6 +20,12 @@ treecapitator.register_tree({
 })
 
 treecapitator.register_tree({
+	trees = {"default:pinetree"},
+	leaves = {"default:pine_needles"},
+	range = 6,
+})
+
+treecapitator.register_tree({
 	trees = {"default:jungletree"},
 	leaves = {"default:jungleleaves"},
 	range = 3
