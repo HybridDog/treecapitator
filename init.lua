@@ -182,12 +182,13 @@ local function capitate_tree(pos, node, digger)
 	end
 	local t1 = os.clock()
 	capitating = true
-	local np = {x=pos.x, y=pos.y+1, z=pos.z}
-	local nd = get_node(np)
+	local nd = get_node({x=pos.x, y=pos.y+1, z=pos.z})
 	for _,tr in pairs(treecapitator.trees) do
 		local trees = tr.trees
 		local tree_found = table.icontains(trees, nd.name) and nd.param2 == 0
 		if tree_found then
+			local np = {x=pos.x, y=pos.y+1, z=pos.z}
+			local nd = nd
 			local tab, n = {}, 1
 			while tree_found do
 				tab[n] = {vector.new(np), nd}

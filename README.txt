@@ -3,4 +3,4 @@
 TODO:
 — add more trees
 — add more types of trees
-— remove nodes at once and play sound if much nodes are removed
+— play sound if much nodes are removed

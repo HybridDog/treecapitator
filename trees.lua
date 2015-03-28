@@ -33,3 +33,19 @@ if minetest.get_modpath("nyanland") then
 		fruits = {"default:apple"}
 	})
 end
+
+if minetest.get_modpath("farming_plus") then
+	treecapitator.register_tree({
+		trees = {"default:tree"},
+		leaves = {"farming_plus:banana_leaves"},
+		range = 2,
+		fruits = {"farming_plus:banana"}
+	})
+
+	treecapitator.register_tree({
+		trees = {"default:tree"},
+		leaves = {"farming_plus:cocoa_leaves"},
+		range = 2,
+		fruits = {"farming_plus:cocoa"}
+	})
+end
