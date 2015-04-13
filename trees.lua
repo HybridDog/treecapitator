@@ -55,3 +55,90 @@ if minetest.get_modpath("farming_plus") then
 		fruits = {"farming_plus:cocoa"}
 	})
 end
+
+if minetest.get_modpath("moretrees") then
+	treecapitator.register_tree({
+		trees = {"moretrees:acacia"},
+		leaves = {"moretrees:acacia_leaves"},
+		range = 10,
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:apple_tree"},
+		leaves = {"moretrees:apple_tree_leaves"},
+		range = 20,
+		fruits = {"default:apple"}
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:beech"},
+		leaves = {"moretrees:beech_leaves"},
+		range = 8,
+	})
+	treecapitator.register_tree({
+		trees = {"moretrees:birch"},
+		leaves = {"moretrees:birch_leaves"},
+		range = 8,
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:fir"},
+		leaves = {"moretrees:fir_leaves"},
+		range = 12,
+		fruits = {"moretrees:fir_cone"}
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:jungletree"},
+		leaves = {"moretrees:jungletree_leaves"},
+		range = 8,
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:oak"},
+		leaves = {"moretrees:oak_leaves"},
+		range = 8,
+		fruits = {"moretrees:acorn"}
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:palm"},
+		leaves = {"moretrees:palm_leaves"},
+		range = 8,
+		fruits = {"moretrees:coconut"}
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:pine"},
+		leaves = {"moretrees:pine_leaves"},
+		range = 8,
+		fruits = {"moretrees:pine_cone"}
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:rubber_tree"},
+		leaves = {"moretrees:rubber_tree_leaves"},
+		range = 8,
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:sequoia"},
+		leaves = {"moretrees:sequoia_leaves"},
+		range = 12,
+		fruits = {"moretrees:banana"}
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:spruce"},
+		leaves = {"moretrees:spruce_leaves"},
+		range = 10,
+		fruits = {"moretrees:spruce_cone"}
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:willow"},
+		leaves = {"moretrees:willow_leaves"},
+		range = 12,
+	})
+
+end
