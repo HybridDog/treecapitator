@@ -6,6 +6,7 @@ treecapitator = {}
 
 treecapitator.drop_items = false	--drop them / get them in the inventory
 treecapitator.drop_leaf = false
+treecapitator.play_sound = true
 treecapitator.default_tree = {	--replaces not defined stuff (see below)
 	trees = {"default:tree"},
 	leaves = {"default:leaves"},
@@ -25,6 +26,29 @@ treecapitator.rest_tree_nodes = {}
 
 --------------------------------------------fcts----------------------------------------------
 
+-- don't use minetest.get_node more times for the same position
+local known_nodes = {}
+local function remove_node(pos)
+	known_nodes[pos.z .." "..pos.y .." "..pos.x] = {name="air", param2=0}
+	minetest.remove_node(pos)
+end
+
+local function dig_node(pos, node, digger)
+	known_nodes[pos.z .." "..pos.y .." "..pos.x] = {name="air", param2=0}
+	minetest.node_dig(pos, node, digger)
+end
+
+local function get_node(pos)
+	local pstr = pos.z .." "..pos.y .." "..pos.x
+	local node = known_nodes[pstr]
+	if node then
+		return node
+	end
+	node = minetest.get_node(pos)
+	known_nodes[pstr] = node
+	return node
+end
+
 --definitions of functions for the destruction of nodes
 local destroy_node, drop_leaf, remove_leaf
 if treecapitator.drop_items then
@@ -37,7 +61,7 @@ if treecapitator.drop_items then
 		for _,item in pairs(drops) do
 			minetest.add_item(pos, item)
 		end
-		minetest.remove_node(pos)
+		remove_node(pos)
 	end
 else
 	function drop_leaf(pos, item, inv)
@@ -49,9 +73,7 @@ else
 		end
 	end
 
-	function destroy_node(pos, node, digger)
-		minetest.node_dig(pos, node, digger)
-	end
+	destroy_node = dig_node
 end
 
 if not treecapitator.drop_leaf then
@@ -62,7 +84,7 @@ if not treecapitator.drop_leaf then
 				drop_leaf(p, itemname, inv)
 			end
 		end
-		minetest.remove_node(p)	--remove the leaves
+		remove_node(p)	--remove the leaves
 	end
 else
 	function remove_leaf(p, _, _, node, digger)
@@ -85,10 +107,7 @@ local function findtree(node)
 	if node == 0 then
 		return true
 	end
-	if table.icontains(treecapitator.rest_tree_nodes, node.name) then
-		return true
-	end
-	return false
+	return table.icontains(treecapitator.rest_tree_nodes, node.name)
 end
 
 --returns positions for leaves allowed to be dug
@@ -100,21 +119,29 @@ local function find_next_trees(pos, range, trees, leaves, fruits)
 			for h = r,-r,-1 do
 				local p = {x=pos.x+j, y=pos.y+h, z=pos.z+i}
 
-				local leaf = minetest.get_node({x=p.x, y=p.y+1, z=p.z}).name
-				local leaf_found = table.icontains(leaves, leaf) or table.icontains(fruits, leaf)
-				if not leaf_found then
-					leaf = minetest.get_node({x=p.x, y=p.y, z=p.z+1}).name
-					leaf_found = table.icontains(leaves, leaf) or table.icontains(fruits, leaf)
-				end
+				-- tests if a trunk is at the current pos
+				local nd = get_node(p)
+				if table.icontains(trees, nd.name)
+				and nd.param2 == 0
+				and (pos.x ~= p.x or pos.z ~= p.z) then
+					-- search for a leaves or fruit node next to the trunk
+					local leaf = get_node({x=p.x, y=p.y+1, z=p.z}).name
+					local leaf_found = table.icontains(leaves, leaf) or table.icontains(fruits, leaf)
+					if not leaf_found then
+						leaf = get_node({x=p.x, y=p.y, z=p.z+1}).name
+						leaf_found = table.icontains(leaves, leaf) or table.icontains(fruits, leaf)
+					end
 
-				if table.icontains(trees, minetest.get_node(p).name)
-				and leaf_found then
-					for z = -range+i,range+i do
-						for y = -range+h,range+h do
-							for x = -range+j,range+j do
-								if math.abs(z) <= range
-								and math.abs(y) <= range
-								and math.abs(x) <= range then
+					if leaf_found then
+						local z1 = math.max(-range+i, -range)
+						local z2 = math.min(range+i, range)
+						local y1 = math.max(-range+h, -range)
+						local y2 = math.min(range+h, range)
+						local x1 = math.max(-range+j, -range)
+						local x2 = math.min(range+j, range)
+						for z = z1,z2 do
+							for y = y1,y2 do
+								for x = x1,x2 do
 									tab[z.." "..y.." "..x] = true
 								end
 							end
@@ -144,33 +171,31 @@ end
 --the function which is used for capitating
 local capitating = false	--necessary if minetest.node_dig is used
 local function capitate_tree(pos, node, digger)
-	if capitating then
+	if capitating
+	or not digger then
 		return
 	end
 	--minetest.chat_send_all("test0")	<— and this
-	if digger == nil then
-		return
-	end
 	if digger:get_player_control().sneak
 	or not findtree(node) then
 		return
 	end
 	local t1 = os.clock()
 	capitating = true
-
-	local np = {x=pos.x, y=pos.y+1, z=pos.z}
-	local nd = minetest.get_node(np)
-	for _,tr in ipairs(treecapitator.trees) do
+	local nd = get_node({x=pos.x, y=pos.y+1, z=pos.z})
+	for _,tr in pairs(treecapitator.trees) do
 		local trees = tr.trees
-		local tree_found = table.icontains(trees, nd.name)
+		local tree_found = table.icontains(trees, nd.name) and nd.param2 == 0
 		if tree_found then
+			local np = {x=pos.x, y=pos.y+1, z=pos.z}
+			local nd = nd
 			local tab, n = {}, 1
 			while tree_found do
 				tab[n] = {vector.new(np), nd}
 				n = n+1
 				np.y = np.y+1
-				nd = minetest.get_node(np)
-				tree_found = table.icontains(trees, nd.name)
+				nd = get_node(np)
+				tree_found = table.icontains(trees, nd.name) and nd.param2 == 0
 			end
 			local leaves = tr.leaves
 			local fruits = tr.fruits
@@ -178,31 +203,39 @@ local function capitate_tree(pos, node, digger)
 			np.y = np.y-1
 			local leaf_found = table.icontains(leaves, nd.name) or table.icontains(fruits, nd.name)
 			if not leaf_found then
-				local leaf = minetest.get_node({x=np.x, y=np.y, z=np.z+1}).name
+				local leaf = get_node({x=np.x, y=np.y, z=np.z+1}).name
 				leaf_found = table.icontains(leaves, leaf) or table.icontains(fruits, leaf)
 			end
 
 			if leaf_found then
-				for _,i in ipairs(tab) do
+				if treecapitator.play_sound then
+					minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
+				end
+				for _,i in pairs(tab) do
 					destroy_node(i[1], i[2], digger)
 				end
 				local range = tr.range
 				local inv = digger:get_inventory()
 				local head_ps = find_next_trees(np, range, trees, leaves, fruits)	--definition of the leavespositions
 				--minetest.chat_send_all("test1")	<— this too
-				for _,i in ipairs(head_ps) do
+				for _,i in pairs(head_ps) do
 					local p = vector.add(np, i)
-					local node = minetest.get_node(p)
+					local node = get_node(p)
 					local nodename = node.name
-					if table.icontains(leaves, nodename) then
-						remove_leaf(p, nodename, inv, node, digger)
-					elseif table.icontains(fruits, nodename) then
-						destroy_node(p, node, digger)
+					if not table.icontains(trees, nodename)
+					or node.param2 ~= 0 then
+						if table.icontains(leaves, nodename) then
+							remove_leaf(p, nodename, inv, node, digger)
+						elseif table.icontains(fruits, nodename) then
+							destroy_node(p, node, digger)
+						end
 					end
 				end
+				break
 			end
 		end
 	end
+	known_nodes = {}
 	capitating = false
 	minetest.log("info", string.format("[treecapitator] tree capitated at ("..pos.x.."|"..pos.y.."|"..pos.z..") after ca. %.2fs", os.clock() - t1))
 end
