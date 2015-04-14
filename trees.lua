@@ -138,7 +138,7 @@ if minetest.get_modpath("moretrees") then
 	treecapitator.register_tree({
 		trees = {"moretrees:willow_trunk"},
 		leaves = {"moretrees:willow_leaves"},
-		range = 12,
+		range = 10,
 	})
 
 end
