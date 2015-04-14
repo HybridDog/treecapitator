@@ -83,14 +83,14 @@ if minetest.get_modpath("moretrees") then
 
 	treecapitator.register_tree({
 		trees = {"moretrees:fir_trunk"},
-		leaves = {"moretrees:fir_leaves"},
+		leaves = {"moretrees:fir_leaves","fir_leaves_bright"},
 		range = 12,
 		fruits = {"moretrees:fir_cone"}
 	})
 
 	treecapitator.register_tree({
 		trees = {"moretrees:jungletree_trunk"},
-		leaves = {"moretrees:jungletree_leaves"},
+		leaves = {"moretrees:jungletree_leaves_green","jungletree_leaves_yellow","jungletree_leaves_red"},
 		range = 8,
 	})
 
@@ -116,7 +116,7 @@ if minetest.get_modpath("moretrees") then
 	})
 
 	treecapitator.register_tree({
-		trees = {"moretrees:rubber_tree_trunk"},
+		trees = {"moretrees:rubber_tree_trunk","rubber_tree_trunk_empty"},
 		leaves = {"moretrees:rubber_tree_leaves"},
 		range = 8,
 	})
@@ -125,7 +125,6 @@ if minetest.get_modpath("moretrees") then
 		trees = {"moretrees:sequoia_trunk"},
 		leaves = {"moretrees:sequoia_leaves"},
 		range = 12,
-		fruits = {"moretrees:banana"}
 	})
 
 	treecapitator.register_tree({
