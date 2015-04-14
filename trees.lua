@@ -58,85 +58,85 @@ end
 
 if minetest.get_modpath("moretrees") then
 	treecapitator.register_tree({
-		trees = {"moretrees:acacia"},
+		trees = {"moretrees:acacia_trunk"},
 		leaves = {"moretrees:acacia_leaves"},
 		range = 10,
 	})
 
 	treecapitator.register_tree({
-		trees = {"moretrees:apple_tree"},
+		trees = {"moretrees:apple_tree_trunk"},
 		leaves = {"moretrees:apple_tree_leaves"},
 		range = 20,
 		fruits = {"default:apple"}
 	})
 
 	treecapitator.register_tree({
-		trees = {"moretrees:beech"},
+		trees = {"moretrees:beech_trunk"},
 		leaves = {"moretrees:beech_leaves"},
 		range = 8,
 	})
 	treecapitator.register_tree({
-		trees = {"moretrees:birch"},
+		trees = {"moretrees:birch_trunk"},
 		leaves = {"moretrees:birch_leaves"},
 		range = 8,
 	})
 
 	treecapitator.register_tree({
-		trees = {"moretrees:fir"},
+		trees = {"moretrees:fir_trunk"},
 		leaves = {"moretrees:fir_leaves"},
 		range = 12,
 		fruits = {"moretrees:fir_cone"}
 	})
 
 	treecapitator.register_tree({
-		trees = {"moretrees:jungletree"},
+		trees = {"moretrees:jungletree_trunk"},
 		leaves = {"moretrees:jungletree_leaves"},
 		range = 8,
 	})
 
 	treecapitator.register_tree({
-		trees = {"moretrees:oak"},
+		trees = {"moretrees:oak_trunk"},
 		leaves = {"moretrees:oak_leaves"},
 		range = 8,
 		fruits = {"moretrees:acorn"}
 	})
 
 	treecapitator.register_tree({
-		trees = {"moretrees:palm"},
+		trees = {"moretrees:palm_trunk"},
 		leaves = {"moretrees:palm_leaves"},
 		range = 8,
 		fruits = {"moretrees:coconut"}
 	})
 
 	treecapitator.register_tree({
-		trees = {"moretrees:pine"},
+		trees = {"moretrees:pine_trunk"},
 		leaves = {"moretrees:pine_leaves"},
 		range = 8,
 		fruits = {"moretrees:pine_cone"}
 	})
 
 	treecapitator.register_tree({
-		trees = {"moretrees:rubber_tree"},
+		trees = {"moretrees:rubber_tree_trunk"},
 		leaves = {"moretrees:rubber_tree_leaves"},
 		range = 8,
 	})
 
 	treecapitator.register_tree({
-		trees = {"moretrees:sequoia"},
+		trees = {"moretrees:sequoia_trunk"},
 		leaves = {"moretrees:sequoia_leaves"},
 		range = 12,
 		fruits = {"moretrees:banana"}
 	})
 
 	treecapitator.register_tree({
-		trees = {"moretrees:spruce"},
+		trees = {"moretrees:spruce_trunk"},
 		leaves = {"moretrees:spruce_leaves"},
 		range = 10,
 		fruits = {"moretrees:spruce_cone"}
 	})
 
 	treecapitator.register_tree({
-		trees = {"moretrees:willow"},
+		trees = {"moretrees:willow_trunk"},
 		leaves = {"moretrees:willow_leaves"},
 		range = 12,
 	})
