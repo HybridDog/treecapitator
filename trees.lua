@@ -56,7 +56,8 @@ if minetest.get_modpath("farming_plus") then
 	})
 end
 
-if minetest.get_modpath("moretrees") then
+if treecapitator.moretrees_support
+and minetest.get_modpath("moretrees") then
 	treecapitator.register_tree({
 		trees = {"moretrees:acacia_trunk"},
 		leaves = {"moretrees:acacia_leaves"},

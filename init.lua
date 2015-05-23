@@ -7,6 +7,7 @@ treecapitator = {}
 treecapitator.drop_items = false	--drop them / get them in the inventory
 treecapitator.drop_leaf = false
 treecapitator.play_sound = true
+treecapitator.moretrees_support = false
 treecapitator.default_tree = {	--replaces not defined stuff (see below)
 	trees = {"default:tree"},
 	leaves = {"default:leaves"},
