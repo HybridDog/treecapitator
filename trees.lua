@@ -4,12 +4,32 @@ treecapitator.register_tree({
 	leaves = {<node1>, <node2>, ...},
 	range = <range>,
 	fruits = {<node1>, <node2>, ...},
+	type = "default",
 })
 
 trees:	the straight stem nodes with param2=0
 leaves:	nodes of the tree head which only drop their main item if drop_leaf is enabled
 range:	the size of the tree head
 fruits:	similar to leaves but without the drop_leaf setting condition
+
+
+treecapitator.register_tree({
+	trees = {<node1>, <node2>, ...},
+	leaves = {<node1>, <node2>, ...},
+	range = <range>,
+	fruits = {<node1>, <node2>, ...},
+	height = <height>,
+	max_nodes = <max_nodes>,
+	num_trunks_min = <some_number>,
+	num_trunks_max = <some_number>,
+	num_leaves_min = <some_number>,
+	num_leaves_max = <some_number>,
+	type = "moretrees",
+})
+
+height:	maximum tree height
+max_nodes:	maximum amount of nodes the tree is allowed to consist of
+num_trunks_min…
 ]]
 
 treecapitator.register_tree({
@@ -140,5 +160,18 @@ and minetest.get_modpath("moretrees") then
 		leaves = {"moretrees:willow_leaves"},
 		range = 10,
 	})
-
+	--[[
+	treecapitator.register_tree({
+		trees = {"moretrees:willow_trunk"},
+		leaves = {"moretrees:willow_leaves"},
+		range = 11,
+		height = 17,
+		max_nodes = 8000,
+		num_trunks_min = 5,
+		num_trunks_max = 100,
+		num_leaves_min = 10,
+		num_leaves_max = 4000,
+		type = "moretrees",
+	})
+	--]]
 end
