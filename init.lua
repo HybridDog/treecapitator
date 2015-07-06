@@ -1,19 +1,21 @@
 local load_time_start = os.clock()
-treecapitator = {}
 
 
 --------------------------------------Settings----------------------------------------------
 
-treecapitator.drop_items = false	--drop them / get them in the inventory
-treecapitator.drop_leaf = false
-treecapitator.play_sound = true
-treecapitator.moretrees_support = false
-treecapitator.default_tree = {	--replaces not defined stuff (see below)
-	trees = {"default:tree"},
-	leaves = {"default:leaves"},
-	range = 2,
-	fruits = {},
-	type = "default",
+treecapitator = {
+	drop_items = false,	--drop them / get them in the inventory
+	drop_leaf = false,
+	play_sound = true,
+	moretrees_support = false,
+	delay = 2, --lets trees become capitated <delay> seconds later
+	default_tree = {	--replaces not defined stuff (see below)
+		trees = {"default:tree"},
+		leaves = {"default:leaves"},
+		range = 2,
+		fruits = {},
+		type = "default",
+	},
 }
 
 ---------------------------------------------------------------------------------------------
@@ -184,9 +186,11 @@ local function get_tab(pos, func, max)
 					{x=p.x, y=p.y, z=p.z+i},
 				}) do]]
 			for i = -1,1 do
+				local p2 = {x=p.x+i}
 				for j = -1,1 do
+					p2.y = p.y+j
 					for k = -1,1 do
-						local p2 = {x=p.x+i, y=p.y+j, z=p.z+k}
+						p2.z = p.z+k
 						local pstr = p2.x.." "..p2.y.." "..p2.z
 						if not tab_avoid[pstr]
 						and func(p2) then
@@ -335,6 +339,16 @@ local function capitate_tree(pos, node, digger)
 	minetest.log("info", string.format("[treecapitator] tree capitated at ("..pos.x.."|"..pos.y.."|"..pos.z..") after ca. %.2fs", os.clock() - t1))
 end
 
+local delay = treecapitator.delay
+if delay > 0 then
+	local oldfunc = capitate_tree
+	function capitate_tree(...)
+		minetest.after(delay, function(...)
+			oldfunc(...)
+		end, ...)
+	end
+end
+
 --adds trunks to rest_tree_nodes if they were overwritten by other mods
 local tmp_trees = {}
 local function test_overwritten(tree)
@@ -351,16 +365,30 @@ minetest.after(0, function()
 	tmp_trees = nil
 end)
 
---tests if minetest.override_item is aviable
-local new_version = minetest.override_item and true
-
-if not new_version then
+-- the function to overide trunks
+local override
+if minetest.override_item then
+	function override(name)
+		minetest.override_item(name, {
+			after_dig_node = function(pos, _, _, digger)
+				capitate_tree(pos, 0, digger)
+			end
+		})
+	end
+else
 	table.copy = table.copy or function(tab)
 		local tab2 = {}
 		for n,i in pairs(tab) do
 			tab2[n] = i
 		end
 		return tab2
+	end
+	function override(name, data)
+		data = table.copy(data)
+		data.after_dig_node = function(pos, _, _, digger)
+			capitate_tree(pos, 0, digger)
+		end
+		minetest.register_node(":"..name, data)
 	end
 end
 
@@ -383,19 +411,7 @@ function treecapitator.register_tree(tab)
 				minetest.log("info", "[treecapitator] Info: "..tree.." already has an after_dig_node.")
 				table.insert(treecapitator.rest_tree_nodes, tree)
 			else
-				if new_version then
-					minetest.override_item(tree, {
-						after_dig_node = function(pos, _, _, digger)
-							capitate_tree(pos, 0, digger)
-						end
-					})
-				else
-					data = table.copy(data)
-					data.after_dig_node = function(pos, _, _, digger)
-						capitate_tree(pos, 0, digger)
-					end
-					minetest.register_node(":"..tree, data)
-				end
+				override(tree, data)
 				test_overwritten(tree)
 			end
 		end
