@@ -4,12 +4,32 @@ treecapitator.register_tree({
 	leaves = {<node1>, <node2>, ...},
 	range = <range>,
 	fruits = {<node1>, <node2>, ...},
+	type = "default",
 })
 
 trees:	the straight stem nodes with param2=0
 leaves:	nodes of the tree head which only drop their main item if drop_leaf is enabled
 range:	the size of the tree head
 fruits:	similar to leaves but without the drop_leaf setting condition
+
+
+treecapitator.register_tree({
+	trees = {<node1>, <node2>, ...},
+	leaves = {<node1>, <node2>, ...},
+	range = <range>,
+	fruits = {<node1>, <node2>, ...},
+	height = <height>,
+	max_nodes = <max_nodes>,
+	num_trunks_min = <some_number>,
+	num_trunks_max = <some_number>,
+	num_leaves_min = <some_number>,
+	num_leaves_max = <some_number>,
+	type = "moretrees",
+})
+
+height:	maximum tree height
+max_nodes:	maximum amount of nodes the tree is allowed to consist of
+num_trunks_min…
 ]]
 
 treecapitator.register_tree({
@@ -54,4 +74,104 @@ if minetest.get_modpath("farming_plus") then
 		range = 2,
 		fruits = {"farming_plus:cocoa"}
 	})
+end
+
+if treecapitator.moretrees_support
+and minetest.get_modpath("moretrees") then
+	treecapitator.register_tree({
+		trees = {"moretrees:acacia_trunk"},
+		leaves = {"moretrees:acacia_leaves"},
+		range = 10,
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:apple_tree_trunk"},
+		leaves = {"moretrees:apple_tree_leaves"},
+		range = 20,
+		fruits = {"default:apple"}
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:beech_trunk"},
+		leaves = {"moretrees:beech_leaves"},
+		range = 8,
+	})
+	treecapitator.register_tree({
+		trees = {"moretrees:birch_trunk"},
+		leaves = {"moretrees:birch_leaves"},
+		range = 8,
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:fir_trunk"},
+		leaves = {"moretrees:fir_leaves","fir_leaves_bright"},
+		range = 12,
+		fruits = {"moretrees:fir_cone"}
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:jungletree_trunk"},
+		leaves = {"moretrees:jungletree_leaves_green","jungletree_leaves_yellow","jungletree_leaves_red"},
+		range = 8,
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:oak_trunk"},
+		leaves = {"moretrees:oak_leaves"},
+		range = 8,
+		fruits = {"moretrees:acorn"}
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:palm_trunk"},
+		leaves = {"moretrees:palm_leaves"},
+		range = 8,
+		fruits = {"moretrees:coconut"}
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:pine_trunk"},
+		leaves = {"moretrees:pine_leaves"},
+		range = 8,
+		fruits = {"moretrees:pine_cone"}
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:rubber_tree_trunk","rubber_tree_trunk_empty"},
+		leaves = {"moretrees:rubber_tree_leaves"},
+		range = 8,
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:sequoia_trunk"},
+		leaves = {"moretrees:sequoia_leaves"},
+		range = 12,
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:spruce_trunk"},
+		leaves = {"moretrees:spruce_leaves"},
+		range = 10,
+		fruits = {"moretrees:spruce_cone"}
+	})
+
+	treecapitator.register_tree({
+		trees = {"moretrees:willow_trunk"},
+		leaves = {"moretrees:willow_leaves"},
+		range = 10,
+	})
+	--[[
+	treecapitator.register_tree({
+		trees = {"moretrees:willow_trunk"},
+		leaves = {"moretrees:willow_leaves"},
+		range = 11,
+		height = 17,
+		max_nodes = 8000,
+		num_trunks_min = 5,
+		num_trunks_max = 100,
+		num_leaves_min = 10,
+		num_leaves_max = 4000,
+		type = "moretrees",
+	})
+	--]]
 end
