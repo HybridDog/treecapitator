@@ -186,11 +186,9 @@ local function get_tab(pos, func, max)
 					{x=p.x, y=p.y, z=p.z+i},
 				}) do]]
 			for i = -1,1 do
-				local p2 = {x=p.x+i}
 				for j = -1,1 do
-					p2.y = p.y+j
 					for k = -1,1 do
-						p2.z = p.z+k
+						local p2 = {x=p.x+i, y=p.y+j, z=p.z+k}
 						local pstr = p2.x.." "..p2.y.." "..p2.z
 						if not tab_avoid[pstr]
 						and func(p2) then
