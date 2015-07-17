@@ -176,7 +176,7 @@ and minetest.get_modpath("moretrees") then
 	--]]
 end
 
--- code from amadin
+-- code from amadin and narrnika
 if minetest.get_modpath("ethereal") then
 	treecapitator.register_tree({--jungle [эвкалипт]
 		trees = {"default:jungletree"},
