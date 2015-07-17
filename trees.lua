@@ -175,3 +175,94 @@ and minetest.get_modpath("moretrees") then
 	})
 	--]]
 end
+
+-- code from amadin
+if minetest.get_modpath("ethereal") then
+	treecapitator.register_tree({--jungle [эвкалипт]
+		trees = {"default:jungletree"},
+		leaves = {"default:jungleleaves"},
+		range = 3,
+		height = 20,
+		max_nodes = 145,
+		num_trunks_min = 0,
+		num_trunks_max = 35,
+		num_leaves_min = 0,
+		num_leaves_max = 110,
+		type = "moretrees",
+	})
+	treecapitator.register_tree({--pine [кедр]
+		trees = {"default:pinetree"},
+		leaves = {"ethereal:pineleaves"},
+		range = 6,
+		type = "default",
+	})
+	treecapitator.register_tree({--orange [апельсиновое дерево]
+		trees = {"default:tree"},
+		leaves = {"default:leaves", "ethereal:orange_leaves"},
+		fruits = {"default:apple", "ethereal:orange"},
+		range = 2,
+		type = "default",
+	})
+	treecapitator.register_tree({--acacia [акация]
+		trees = {"ethereal:acacia_trunk"},
+		leaves = {"ethereal:acacia_leaves"},
+		range = 10,
+		height = 10,
+		max_nodes = 122,
+		num_trunks_min = 0,
+		num_trunks_max = 22,
+		num_leaves_min = 0,
+		num_leaves_max = 100,
+		type = "moretrees",
+	})
+	treecapitator.register_tree({--banana [банановое дерево]
+		trees = {"ethereal:banana_trunk"},
+		leaves = {"ethereal:bananaleaves"},
+		fruits = {"ethereal:banana"},
+		range = 3,
+		height = 7,
+		max_nodes = 28,
+		num_trunks_min = 0,
+		num_trunks_max = 4,
+		num_leaves_min = 0,
+		num_leaves_max = 20,
+		type = "moretrees",
+	})
+	treecapitator.register_tree({--coconut [кокосовое дерево]
+		trees = {"ethereal:palm_trunk"},
+		leaves = {"ethereal:palmleaves"},
+		fruits = {"ethereal:coconut"},
+		range = 3,
+		height = 9,
+		max_nodes = 37,
+		num_trunks_min = 0,
+		num_trunks_max = 8,
+		num_leaves_min = 0,
+		num_leaves_max = 25,
+		type = "moretrees",
+	})
+	treecapitator.register_tree({--willow [ива]
+		trees = {"ethereal:willow_trunk"},
+		leaves = {"ethereal:willow_twig"},
+		range = 10,
+		height = 13,
+		max_nodes = 540,
+		num_trunks_min = 0,
+		num_trunks_max = 90,
+		num_leaves_min = 0,
+		num_leaves_max = 450,
+		type = "moretrees",
+	})
+	treecapitator.register_tree({--moshroom [гриб]
+		trees = {"ethereal:mushroom_trunk"},
+		leaves = {"ethereal:mushroom", "ethereal:mushroom_porew"},
+		range = 4,
+		height = 10,
+		max_nodes = 100,
+		num_trunks_min = 0,
+		num_trunks_max = 32,
+		num_leaves_min = 0,
+		num_leaves_max = 80,
+		type = "moretrees",
+	})
+end
