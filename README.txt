@@ -6,3 +6,5 @@ TODO:
 — add more trees
 — add more types of trees
 — play sound if much nodes are removed
+— use vector_extras' functions to increase speed
+— update loop(s)
