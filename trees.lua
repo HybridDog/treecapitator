@@ -40,7 +40,7 @@ treecapitator.register_tree({
 })
 
 treecapitator.register_tree({
-	trees = {"default:pinetree"},
+	trees = {"default:pine_tree"},
 	leaves = {"default:pine_needles"},
 	range = 6,
 })
