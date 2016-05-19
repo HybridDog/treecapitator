@@ -142,10 +142,10 @@ and minetest.get_modpath("moretrees") then
 	})
 
 	treecapitator.register_tree({
-		trees = {"moretrees:pine_trunk"},
-		leaves = {"moretrees:pine_leaves"},
+		trees = {"moretrees:cedar_trunk"},
+		leaves = {"moretrees:cedar_leaves"},
 		range = 8,
-		fruits = {"moretrees:pine_cone"}
+		fruits = {"moretrees:cedar_cone"}
 	})
 
 	treecapitator.register_tree({
