@@ -51,11 +51,13 @@ treecapitator.register_tree({
 	range = 3
 })
 
+--[[
 treecapitator.register_tree({
 	trees = {"default:acacia_tree"},
 	leaves = {"default:acacia_leaves"},
 	range = 6,
 })
+--]]
 
 treecapitator.register_tree({
 	trees = {"default:aspen_tree"},
