@@ -203,7 +203,7 @@ if minetest.get_modpath("ethereal") then
 		type = "moretrees",
 	})
 	treecapitator.register_tree({--pine [кедр]
-		trees = {"default:pinetree"},
+		trees = {"default:pinetree"}, -- this may need to be changed to pine_tree
 		leaves = {"ethereal:pineleaves"},
 		range = 6,
 		type = "default",
