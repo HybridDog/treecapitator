@@ -363,7 +363,7 @@ local function capitate_tree(pos, node, digger)
 	end
 	clean_cache()
 	capitating = false
-	minetest.log("info", "[treecapitator] tree capitated at ("..pos.x.."|"..pos.y.."|"..pos.z..") after ca. " .. (minetest.get_us_time() - t1) / 1000000 .. " s"))
+	minetest.log("info", "[treecapitator] tree capitated at ("..pos.x.."|"..pos.y.."|"..pos.z..") after ca. " .. (minetest.get_us_time() - t1) / 1000000 .. " s")
 end
 
 local delay = treecapitator.delay

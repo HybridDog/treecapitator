@@ -153,12 +153,12 @@ and minetest.get_modpath("moretrees") then
 		leaves = {"moretrees:rubber_tree_leaves"},
 		range = 8,
 	})
-
+--[[
 	treecapitator.register_tree({
 		trees = {"moretrees:sequoia_trunk"},
 		leaves = {"moretrees:sequoia_leaves"},
 		range = 12,
-	})
+	})--]]
 
 	treecapitator.register_tree({
 		trees = {"moretrees:spruce_trunk"},
@@ -167,12 +167,29 @@ and minetest.get_modpath("moretrees") then
 		fruits = {"moretrees:spruce_cone"}
 	})
 
+	--[[
 	treecapitator.register_tree({
 		trees = {"moretrees:willow_trunk"},
 		leaves = {"moretrees:willow_leaves"},
 		range = 10,
 	})
-	--[[
+	--]]
+
+	treecapitator.register_tree({
+		trees = {"moretrees:sequoia_trunk"},
+		leaves = {"moretrees:sequoia_leaves"},
+		range = 8,
+
+
+		height = 17,
+		max_nodes = 8000,
+		num_trunks_min = 5,
+		num_trunks_max = 400,
+		num_leaves_min = 10,
+		num_leaves_max = 4000,
+		type = "moretrees",
+	})
+
 	treecapitator.register_tree({
 		trees = {"moretrees:willow_trunk"},
 		leaves = {"moretrees:willow_leaves"},
@@ -180,12 +197,11 @@ and minetest.get_modpath("moretrees") then
 		height = 17,
 		max_nodes = 8000,
 		num_trunks_min = 5,
-		num_trunks_max = 100,
+		num_trunks_max = 400,
 		num_leaves_min = 10,
 		num_leaves_max = 4000,
 		type = "moretrees",
 	})
-	--]]
 end
 
 -- code from amadin and narrnika
