@@ -1,4 +1,4 @@
-local load_time_start = os.clock()
+local load_time_start = minetest.get_us_time()
 
 
 --------------------------------------Settings----------------------------------------------
@@ -49,8 +49,14 @@ treecapitator.rest_tree_nodes = {}
 
 local poshash = minetest.hash_node_position
 
--- don't use minetest.get_node more times for the same position
-local known_nodes = {}
+-- don't use minetest.get_node more times for the same position (caching)
+local known_nodes
+local function clean_cache()
+	known_nodes = {}
+	setmetatable(known_nodes, {__mode = "kv"})
+end
+clean_cache()
+
 local function remove_node(pos)
 	known_nodes[poshash(pos)] = {name="air", param2=0}
 	minetest.remove_node(pos)
@@ -193,37 +199,41 @@ end
 -- table iteration instead of recursion
 local function get_tab(pos, func, max)
 	local todo = {pos}
+	local n = 1
 	local tab_avoid = {[poshash(pos)] = true}
 	local tab_done,num = {pos},2
-	while todo[1] do
-		for n,p in pairs(todo) do
-			--[[
-			for i = -1,1,2 do
-				for _,p2 in pairs({
-					{x=p.x+i, y=p.y, z=p.z},
-					{x=p.x, y=p.y+i, z=p.z},
-					{x=p.x, y=p.y, z=p.z+i},
-				}) do]]
-			for i = -1,1 do
-				for j = -1,1 do
-					for k = -1,1 do
-						local p2 = {x=p.x+i, y=p.y+j, z=p.z+k}
-						local vi = poshash(p2)
-						if not tab_avoid[vi]
-						and func(p2) then
-							tab_avoid[vi] = true
-							tab_done[num] = p2
-							num = num+1
-							table.insert(todo, p2)
-							if max
-							and num > max then
-								return false
-							end
+	while n ~= 0 do
+		local p = todo[n]
+		n = n-1
+		--[[
+		for i = -1,1,2 do
+			for _,p2 in pairs{
+				{x=p.x+i, y=p.y, z=p.z},
+				{x=p.x, y=p.y+i, z=p.z},
+				{x=p.x, y=p.y, z=p.z+i},
+			} do]]
+		for i = -1,1 do
+			for j = -1,1 do
+				for k = -1,1 do
+					local p2 = {x=p.x+i, y=p.y+j, z=p.z+k}
+					local vi = poshash(p2)
+					if not tab_avoid[vi]
+					and func(p2) then
+						n = n+1
+						todo[n] = p2
+
+						tab_avoid[vi] = true
+
+						tab_done[num] = p2
+						num = num+1
+
+						if max
+						and num > max then
+							return false
 						end
 					end
 				end
 			end
-			todo[n] = nil
 		end
 	end
 	return tab_done
@@ -242,7 +252,7 @@ local function capitate_tree(pos, node, digger)
 	or not findtree(node) then
 		return
 	end
-	local t1 = os.clock()
+	local t1 = minetest.get_us_time()
 	capitating = true
 	local nd = get_node{x=pos.x, y=pos.y+1, z=pos.z}
 	for _,tr in pairs(treecapitator.trees) do
@@ -325,13 +335,13 @@ local function capitate_tree(pos, node, digger)
 					return true
 				end, tr.max_nodes)
 				if not ps then
-					print("no ps found")
+					print"no ps found"
 				elseif num_trunks < tr.num_trunks_min
 				or num_trunks > tr.num_trunks_max then
-					print("wrong trunks num")
+					print("wrong trunks num: "..num_trunks)
 				elseif num_leaves < tr.num_leaves_min
 				or num_leaves > tr.num_leaves_max then
-					print("wrong leaves num")
+					print("wrong leaves num: "..num_leaves)
 				else
 					if treecapitator.play_sound then
 						minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
@@ -351,9 +361,9 @@ local function capitate_tree(pos, node, digger)
 			end
 		end
 	end
-	known_nodes = {}
+	clean_cache()
 	capitating = false
-	minetest.log("info", string.format("[treecapitator] tree capitated at ("..pos.x.."|"..pos.y.."|"..pos.z..") after ca. %.2fs", os.clock() - t1))
+	minetest.log("info", "[treecapitator] tree capitated at ("..pos.x.."|"..pos.y.."|"..pos.z..") after ca. " .. (minetest.get_us_time() - t1) / 1000000 .. " s"))
 end
 
 local delay = treecapitator.delay
@@ -369,14 +379,14 @@ end
 --adds trunks to rest_tree_nodes if they were overwritten by other mods
 local tmp_trees = {}
 local function test_overwritten(tree)
-	table.insert(tmp_trees, tree)
+	tmp_trees[#tmp_trees+1] = tree
 end
 
 minetest.after(0, function()
 	for _,tree in pairs(tmp_trees) do
 		if not minetest.registered_nodes[tree].after_dig_node then
 			minetest.log("error", "[treecapitator] Error: Overwriting "..tree.." went wrong.")
-			table.insert(treecapitator.rest_tree_nodes, tree)
+			treecapitator.rest_tree_nodes[#treecapitator.rest_tree_nodes+1] = tree
 		end
 	end
 	tmp_trees = nil
@@ -393,6 +403,7 @@ if minetest.override_item then
 		})
 	end
 else
+	minetest.log("deprecated", "minetest.override_item isn't supported")
 	table.copy = table.copy or function(tab)
 		local tab2 = {}
 		for n,i in pairs(tab) do
@@ -422,11 +433,11 @@ function treecapitator.register_tree(tab)
 		local data = minetest.registered_nodes[tree]
 		if not data then
 			minetest.log("info", "[treecapitator] Info: "..tree.." isn't registered yet.")
-			table.insert(treecapitator.rest_tree_nodes, tree)
+			treecapitator.rest_tree_nodes[#treecapitator.rest_tree_nodes+1] = tree
 		else
 			if data.after_dig_node then
 				minetest.log("info", "[treecapitator] Info: "..tree.." already has an after_dig_node.")
-				table.insert(treecapitator.rest_tree_nodes, tree)
+				treecapitator.rest_tree_nodes[#treecapitator.rest_tree_nodes+1] = tree
 			else
 				override(tree, data)
 				test_overwritten(tree)
@@ -445,4 +456,11 @@ if treecapitator.rest_tree_nodes[1] then
 	minetest.register_on_dignode(capitate_tree)
 end
 
-minetest.log("info", string.format("[treecapitator] loaded after ca. %.2fs", os.clock() - load_time_start))
+
+local time = (minetest.get_us_time() - load_time_start) / 1000000
+local msg = "[treecapitator] loaded after ca. " .. time .. " seconds."
+if time > 0.01 then
+	print(msg)
+else
+	minetest.log("info", msg)
+end
