@@ -47,26 +47,28 @@ treecapitator.rest_tree_nodes = {}
 
 --------------------------------------------fcts----------------------------------------------
 
+local poshash = minetest.hash_node_position
+
 -- don't use minetest.get_node more times for the same position
 local known_nodes = {}
 local function remove_node(pos)
-	known_nodes[pos.z .." "..pos.y .." "..pos.x] = {name="air", param2=0}
+	known_nodes[poshash(pos)] = {name="air", param2=0}
 	minetest.remove_node(pos)
 end
 
 local function dig_node(pos, node, digger)
-	known_nodes[pos.z .." "..pos.y .." "..pos.x] = {name="air", param2=0}
+	known_nodes[poshash(pos)] = {name="air", param2=0}
 	minetest.node_dig(pos, node, digger)
 end
 
 local function get_node(pos)
-	local pstr = pos.z .." "..pos.y .." "..pos.x
-	local node = known_nodes[pstr]
+	local vi = poshash(pos)
+	local node = known_nodes[vi]
 	if node then
 		return node
 	end
 	node = minetest.get_node(pos)
-	known_nodes[pstr] = node
+	known_nodes[vi] = node
 	return node
 end
 
@@ -163,7 +165,7 @@ local function find_next_trees(pos, range, trees, leaves, fruits)
 						for z = z1,z2 do
 							for y = y1,y2 do
 								for x = x1,x2 do
-									tab[z.." "..y.." "..x] = true
+									tab[poshash{x=x, y=y, z=z}] = true
 								end
 							end
 						end
@@ -177,8 +179,8 @@ local function find_next_trees(pos, range, trees, leaves, fruits)
 	for z = -range,range do
 		for y = -range,range do
 			for x = -range,range do
-				if not tab[z.." "..y.." "..x] then
-					local p = {x=x, y=y, z=z}
+				local p = {x=x, y=y, z=z}
+				if not tab[poshash(p)] then
 					tab2[n] = p
 					n = n+1
 				end
@@ -191,7 +193,7 @@ end
 -- table iteration instead of recursion
 local function get_tab(pos, func, max)
 	local todo = {pos}
-	local tab_avoid = {[pos.x.." "..pos.y.." "..pos.z] = true}
+	local tab_avoid = {[poshash(pos)] = true}
 	local tab_done,num = {pos},2
 	while todo[1] do
 		for n,p in pairs(todo) do
@@ -206,10 +208,10 @@ local function get_tab(pos, func, max)
 				for j = -1,1 do
 					for k = -1,1 do
 						local p2 = {x=p.x+i, y=p.y+j, z=p.z+k}
-						local pstr = p2.x.." "..p2.y.." "..p2.z
-						if not tab_avoid[pstr]
+						local vi = poshash(p2)
+						if not tab_avoid[vi]
 						and func(p2) then
-							tab_avoid[pstr] = true
+							tab_avoid[vi] = true
 							tab_done[num] = p2
 							num = num+1
 							table.insert(todo, p2)
@@ -242,7 +244,7 @@ local function capitate_tree(pos, node, digger)
 	end
 	local t1 = os.clock()
 	capitating = true
-	local nd = get_node({x=pos.x, y=pos.y+1, z=pos.z})
+	local nd = get_node{x=pos.x, y=pos.y+1, z=pos.z}
 	for _,tr in pairs(treecapitator.trees) do
 		local trees = tr.trees
 		local tree_found = table.icontains(trees, nd.name) and nd.param2 == 0
@@ -264,7 +266,7 @@ local function capitate_tree(pos, node, digger)
 				np.y = np.y-1
 				local leaf_found = table.icontains(leaves, nd.name) or table.icontains(fruits, nd.name)
 				if not leaf_found then
-					local leaf = get_node({x=np.x, y=np.y, z=np.z+1}).name
+					local leaf = get_node{x=np.x, y=np.y, z=np.z+1}.name
 					leaf_found = table.icontains(leaves, leaf) or table.icontains(fruits, leaf)
 				end
 
@@ -433,7 +435,7 @@ function treecapitator.register_tree(tab)
 	end
 end
 
-dofile(minetest.get_modpath("treecapitator").."/trees.lua")
+dofile(minetest.get_modpath"treecapitator".."/trees.lua")
 
 ---------------------------------------------------------------------------------------------
 
