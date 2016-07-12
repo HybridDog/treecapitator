@@ -3,12 +3,13 @@ local load_time_start = os.clock()
 
 --------------------------------------Settings----------------------------------------------
 
+-- default settings
 treecapitator = {
-	drop_items = false,	--drop them / get them in the inventory
+	drop_items = false,
 	drop_leaf = false,
 	play_sound = true,
 	moretrees_support = false,
-	delay = 0, --lets trees become capitated <delay> seconds later
+	delay = 0,
 	default_tree = {	--replaces not defined stuff (see below)
 		trees = {"default:tree"},
 		leaves = {"default:leaves"},
@@ -17,6 +18,22 @@ treecapitator = {
 		type = "default",
 	},
 }
+
+-- load custom settings
+for name,v in pairs(treecapitator) do
+	local setting = "treecapitator."..name
+	--local typ = type(v)
+	local neuv
+	if type(v) == "boolean" then
+		neuv = minetest.setting_getbool(setting)
+	else--if typ == "number" then
+		neuv = tonumber(minetest.setting_get(setting))
+	end
+	if neuv ~= nil then
+		treecapitator[name] = neuv
+	end
+end
+
 
 ---------------------------------------------------------------------------------------------
 
