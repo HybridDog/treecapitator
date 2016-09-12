@@ -300,6 +300,98 @@ function capitate_funcs.default(pos, tr, node_above, digger)
 	return true
 end
 
+function capitate_funcs.acacia(pos, tr, node_above, digger)
+	local trunk = tr.trees[1]
+
+	-- fill tab with the stem trunks
+	local tab, n = {{{x=pos.x, y=pos.y+1, z=pos.z}, node_above}}, 2
+	local np = {x=pos.x, y=pos.y+2, z=pos.z}
+	local nd = get_node(np)
+	while trunk == nd.name
+	and nd.param2 < 4 do
+		tab[n] = {vector.new(np), nd}
+		n = n+1
+		np.y = np.y+1
+		nd = get_node(np)
+	end
+	np.y = np.y-1
+
+	local siden = 1
+	local sidedata = {}
+	for z = -1,1,2 do
+		for x = -1,1,2 do
+			-- add the other trunks to tab
+			local p = vector.new(np)
+			p.x = p.x+x
+			p.z = p.z+z
+			local nd = get_node(p)
+			if nd.name ~= trunk then
+				p.y = p.y+1
+				nd = get_node(p)
+				if nd.name ~= trunk then
+					return
+				end
+			end
+			tab[n] = {vector.new(p), nd}
+
+			p.x = p.x+x
+			p.z = p.z+z
+			p.y = p.y+1
+
+			if get_node(p).name ~= trunk then
+				return
+			end
+			tab[n+1] = {vector.new(p), nd}
+			n = n+2
+
+			-- get neighbouring acacia trunks for delimiting
+			local no_rms = {}
+			for z = -4,4 do
+				for x = -4,4 do
+					if math.abs(x+z) ~= 8
+					and (x ~= 0 or z ~= 0) then
+						if get_node{x=p.x+x, y=p.y, z=p.z+z}.name == trunk
+						and get_node{x=p.x+x, y=p.y+1, z=p.z+z}.name == tr.leaf then
+							for z = math.max(-4, z-2), math.min(4, z+2) do
+								for x = math.max(-4, x-2), math.min(4, x+2) do
+									no_rms[(z+4)*9 + x+4] = true
+								end
+							end
+						end
+					end
+				end
+			end
+
+			-- remove leaves
+			local inv = digger:get_inventory()
+			p.y = p.y+1
+			local i = 0
+			for z = -4,4 do
+				for x = -4,4 do
+					if not no_rms[i] then
+						local p = {x=p.x+x, y=p.y, z=p.z+z}
+						local node = get_node(p)
+						if node.name == tr.leaf then
+							remove_leaf(p, tr.leaf, inv, node, digger)
+						end
+					end
+					i = i+1
+				end
+			end
+		end
+	end
+
+	-- play the sound, then dig the stem
+	if treecapitator.play_sound then
+		minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
+	end
+	for i = 1,n-1 do
+		local pos,node = unpack(tab[i])
+		destroy_node(pos, node, digger)
+	end
+	return true
+end
+
 function capitate_funcs.moretrees(pos, tr, _, digger)
 	local trees = tr.trees
 	local leaves = tr.leaves
@@ -375,7 +467,7 @@ local function capitate_tree(pos, node, digger)
 	for i = 1,#treecapitator.trees do
 		local tr = treecapitator.trees[i]
 		if table.icontains(tr.trees, node_above.name)
-		and node_above.param2 == 0
+		and node_above.param2 < 4
 		and capitate_funcs[tr.type](pos, tr, node_above, digger) then
 			break
 		end

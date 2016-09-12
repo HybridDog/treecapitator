@@ -53,8 +53,10 @@ treecapitator.register_tree({
 
 treecapitator.register_tree({
 	trees = {"default:acacia_tree"},
-	leaves = {"default:acacia_leaves"},
-	range = 6,
+	leaf = "default:acacia_leaves",
+	no_param2test = true,
+	--leavesrange = 4,
+	type = "acacia"
 })
 
 treecapitator.register_tree({
