@@ -193,7 +193,7 @@ local function find_next_trees(pos, range, trees, leaves, fruits)
 			end
 		end
 	end
-	return tab2
+	return tab2, n-1
 end
 
 -- table iteration instead of recursion
@@ -240,6 +240,67 @@ local function get_tab(pos, func, max)
 end
 
 
+-- the functions for the available types
+local capitate_funcs = {}
+
+function capitate_funcs.default(pos, tr, node_above, digger)
+	local trees = tr.trees
+
+	-- fill tab with the stem trunks
+	local tab, n = {{{x=pos.x, y=pos.y+1, z=pos.z}, node_above}}, 2
+	local np = {x=pos.x, y=pos.y+2, z=pos.z}
+	local nd = get_node(np)
+	while table.icontains(trees, nd.name) and nd.param2 == 0 do
+		tab[n] = {vector.new(np), nd}
+		n = n+1
+		np.y = np.y+1
+		nd = get_node(np)
+	end
+	np.y = np.y-1
+
+	local leaves = tr.leaves
+	local fruits = tr.fruits
+
+	-- abort if the tree lacks leaves/fruits
+	if not table.icontains(leaves, nd.name)
+	and not table.icontains(fruits, nd.name) then
+		local leaf = get_node{x=np.x, y=np.y, z=np.z+1}.name
+		if not table.icontains(leaves, leaf)
+		and not table.icontains(fruits, leaf) then
+			return
+		end
+	end
+
+	-- play the sound, then dig the stem
+	if treecapitator.play_sound then
+		minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
+	end
+	for i = 1,n-1 do
+		local pos,node = unpack(tab[i])
+		destroy_node(pos, node, digger)
+	end
+
+	-- remove leaves and fruits
+	local range = tr.range
+	local inv = digger:get_inventory()
+	local head_ps,n = find_next_trees(np, range, trees, leaves, fruits)	--definition of the leavespositions
+	for i = 1,n do
+		local p = vector.add(np, head_ps[i])
+		local node = get_node(p)
+		local nodename = node.name
+		if not table.icontains(trees, nodename)
+		or node.param2 ~= 0 then
+			if table.icontains(leaves, nodename) then
+				remove_leaf(p, nodename, inv, node, digger)
+			elseif table.icontains(fruits, nodename) then
+				destroy_node(p, node, digger)
+			end
+		end
+	end
+	return true
+end
+
+
 --the function which is used for capitating
 local capitating = false	--necessary if minetest.node_dig is used
 local function capitate_tree(pos, node, digger)
@@ -247,63 +308,20 @@ local function capitate_tree(pos, node, digger)
 	or not digger then
 		return
 	end
-	--minetest.chat_send_all("test0")	<— and this
+	--minetest.chat_send_all"test0"	← and this
 	if digger:get_player_control().sneak
 	or not findtree(node) then
 		return
 	end
 	local t1 = minetest.get_us_time()
 	capitating = true
-	local nd = get_node{x=pos.x, y=pos.y+1, z=pos.z}
+	local node_above = get_node{x=pos.x, y=pos.y+1, z=pos.z}
 	for _,tr in pairs(treecapitator.trees) do
 		local trees = tr.trees
-		local tree_found = table.icontains(trees, nd.name) and nd.param2 == 0
+		local tree_found = table.icontains(trees, node_above.name) and node_above.param2 == 0
 		if tree_found then
 			if tr.type == "default" then
-				local np = {x=pos.x, y=pos.y+1, z=pos.z}
-				local nd = nd
-				local tab, n = {}, 1
-				while tree_found do
-					tab[n] = {vector.new(np), nd}
-					n = n+1
-					np.y = np.y+1
-					nd = get_node(np)
-					tree_found = table.icontains(trees, nd.name) and nd.param2 == 0
-				end
-				local leaves = tr.leaves
-				local fruits = tr.fruits
-
-				np.y = np.y-1
-				local leaf_found = table.icontains(leaves, nd.name) or table.icontains(fruits, nd.name)
-				if not leaf_found then
-					local leaf = get_node{x=np.x, y=np.y, z=np.z+1}.name
-					leaf_found = table.icontains(leaves, leaf) or table.icontains(fruits, leaf)
-				end
-
-				if leaf_found then
-					if treecapitator.play_sound then
-						minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
-					end
-					for _,i in pairs(tab) do
-						destroy_node(i[1], i[2], digger)
-					end
-					local range = tr.range
-					local inv = digger:get_inventory()
-					local head_ps = find_next_trees(np, range, trees, leaves, fruits)	--definition of the leavespositions
-					--minetest.chat_send_all("test1")	<— this too
-					for _,i in pairs(head_ps) do
-						local p = vector.add(np, i)
-						local node = get_node(p)
-						local nodename = node.name
-						if not table.icontains(trees, nodename)
-						or node.param2 ~= 0 then
-							if table.icontains(leaves, nodename) then
-								remove_leaf(p, nodename, inv, node, digger)
-							elseif table.icontains(fruits, nodename) then
-								destroy_node(p, node, digger)
-							end
-						end
-					end
+				if capitate_funcs[tr.type](pos, tr, node_above, digger) then
 					break
 				end
 			elseif tr.type == "moretrees" then
