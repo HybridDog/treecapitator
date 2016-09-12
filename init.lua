@@ -300,83 +300,84 @@ function capitate_funcs.default(pos, tr, node_above, digger)
 	return true
 end
 
+function capitate_funcs.moretrees(pos, tr, _, digger)
+	local trees = tr.trees
+	local leaves = tr.leaves
+	local fruits = tr.fruits
+	local minx = pos.x-tr.range
+	local maxx = pos.x+tr.range
+	local minz = pos.z-tr.range
+	local maxz = pos.z+tr.range
+	local maxy = pos.z+tr.height
+	local num_trunks = 0
+	local num_leaves = 0
+	local ps = get_tab({x=pos.x, y=pos.y+1, z=pos.z}, function(pos)
+		if pos.x < minx
+		or pos.x > maxx
+		or pos.z < minz
+		or pos.z > maxz
+		or pos.y > maxy then
+			return false
+		end
+		local nam = get_node(pos).name
+		if table.icontains(trees, nam) then
+			num_trunks = num_trunks+1
+		elseif table.icontains(leaves, nam) then
+			num_leaves = num_leaves+1
+		elseif not table.icontains(fruits, nam) then
+			return false
+		end
+		return true
+	end, tr.max_nodes)
+	if not ps then
+		print"no ps found"
+		return
+	end
+	if num_trunks < tr.num_trunks_min
+	or num_trunks > tr.num_trunks_max then
+		print("wrong trunks num: "..num_trunks)
+		return
+	end
+	if num_leaves < tr.num_leaves_min
+	or num_leaves > tr.num_leaves_max then
+		print("wrong leaves num: "..num_leaves)
+		return
+	end
+	if treecapitator.play_sound then
+		minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
+	end
+	local inv = digger:get_inventory()
+	for _,p in pairs(ps) do
+		local node = get_node(p)
+		local nodename = node.name
+		if table.icontains(leaves, nodename) then
+			remove_leaf(p, nodename, inv, node, digger)
+		else
+			destroy_node(p, node, digger)
+		end
+	end
+	return true
+end
+
 
 --the function which is used for capitating
 local capitating = false	--necessary if minetest.node_dig is used
 local function capitate_tree(pos, node, digger)
 	if capitating
-	or not digger then
-		return
-	end
-	--minetest.chat_send_all"test0"	← and this
-	if digger:get_player_control().sneak
+	or not digger
+	or digger:get_player_control().sneak
 	or not findtree(node) then
 		return
 	end
 	local t1 = minetest.get_us_time()
 	capitating = true
 	local node_above = get_node{x=pos.x, y=pos.y+1, z=pos.z}
-	for _,tr in pairs(treecapitator.trees) do
-		local trees = tr.trees
-		local tree_found = table.icontains(trees, node_above.name) and node_above.param2 == 0
-		if tree_found then
-			if tr.type == "default" then
-				if capitate_funcs[tr.type](pos, tr, node_above, digger) then
-					break
-				end
-			elseif tr.type == "moretrees" then
-				local leaves = tr.leaves
-				local fruits = tr.fruits
-				local minx = pos.x-tr.range
-				local maxx = pos.x+tr.range
-				local minz = pos.z-tr.range
-				local maxz = pos.z+tr.range
-				local maxy = pos.z+tr.height
-				local num_trunks = 0
-				local num_leaves = 0
-				local ps = get_tab({x=pos.x, y=pos.y+1, z=pos.z}, function(pos)
-					if pos.x < minx
-					or pos.x > maxx
-					or pos.z < minz
-					or pos.z > maxz
-					or pos.y > maxy then
-						return false
-					end
-					local nam = get_node(pos).name
-					if table.icontains(trees, nam) then
-						num_trunks = num_trunks+1
-					elseif table.icontains(leaves, nam) then
-						num_leaves = num_leaves+1
-					elseif not table.icontains(fruits, nam) then
-						return false
-					end
-					return true
-				end, tr.max_nodes)
-				if not ps then
-					print"no ps found"
-				elseif num_trunks < tr.num_trunks_min
-				or num_trunks > tr.num_trunks_max then
-					print("wrong trunks num: "..num_trunks)
-				elseif num_leaves < tr.num_leaves_min
-				or num_leaves > tr.num_leaves_max then
-					print("wrong leaves num: "..num_leaves)
-				else
-					if treecapitator.play_sound then
-						minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
-					end
-					local inv = digger:get_inventory()
-					for _,p in pairs(ps) do
-						local node = get_node(p)
-						local nodename = node.name
-						if table.icontains(leaves, nodename) then
-							remove_leaf(p, nodename, inv, node, digger)
-						else
-							destroy_node(p, node, digger)
-						end
-					end
-					break
-				end
-			end
+	for i = 1,#treecapitator.trees do
+		local tr = treecapitator.trees[i]
+		if table.icontains(tr.trees, node_above.name)
+		and node_above.param2 == 0
+		and capitate_funcs[tr.type](pos, tr, node_above, digger) then
+			break
 		end
 	end
 	clean_cache()
