@@ -81,11 +81,11 @@ end
 --definitions of functions for the destruction of nodes
 local destroy_node, drop_leaf, remove_leaf
 if treecapitator.drop_items then
-	function drop_leaf(pos, item, inv)
+	function drop_leaf(pos, item)
 		minetest.add_item(pos, item)
 	end
 
-	function destroy_node(pos, node, digger)
+	function destroy_node(pos, node)
 		local drops = minetest.get_node_drops(node.name)
 		for _,item in pairs(drops) do
 			minetest.add_item(pos, item)
@@ -283,7 +283,8 @@ function capitate_funcs.default(pos, tr, node_above, digger)
 	-- remove leaves and fruits
 	local range = tr.range
 	local inv = digger:get_inventory()
-	local head_ps,n = find_next_trees(np, range, trees, leaves, fruits)	--definition of the leavespositions
+	local head_ps
+	head_ps,n = find_next_trees(np, range, trees, leaves, fruits)	--definition of the leavespositions
 	for i = 1,n do
 		local p = vector.add(np, head_ps[i])
 		local node = get_node(p)
@@ -316,8 +317,6 @@ function capitate_funcs.acacia(pos, tr, node_above, digger)
 	end
 	np.y = np.y-1
 
-	local siden = 1
-	local sidedata = {}
 	for z = -1,1,2 do
 		for x = -1,1,2 do
 			-- add the other trunks to tab
