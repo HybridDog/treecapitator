@@ -399,7 +399,7 @@ function capitate_funcs.moretrees(pos, tr, _, digger)
 	local maxx = pos.x+tr.range
 	local minz = pos.z-tr.range
 	local maxz = pos.z+tr.range
-	local maxy = pos.z+tr.height
+	local maxy = pos.y+tr.height
 	local num_trunks = 0
 	local num_leaves = 0
 	local ps = get_tab({x=pos.x, y=pos.y+1, z=pos.z}, function(pos)
