@@ -60,6 +60,7 @@ clean_cache()
 local function remove_node(pos)
 	known_nodes[poshash(pos)] = {name="air", param2=0}
 	minetest.remove_node(pos)
+	minetest.check_for_falling(pos)
 end
 
 local function dig_node(pos, node, digger)
