@@ -140,52 +140,66 @@ local function findtree(node)
 	return table.icontains(treecapitator.rest_tree_nodes, node.name)
 end
 
+-- tests if the node is a trunk which could belong to the same tree sort
+local function is_trunk_of_tree(trees, node)
+	return table.icontains(trees, node.name)
+		and node.param2 == 0
+end
+
 --returns positions for leaves allowed to be dug
-local function find_next_trees(pos, range, trees, leaves, fruits)
+local function find_next_trees(pos, r,r_up,r_down, trees, leaves, fruits)
+	-- firstly, detect neighbour trees of the same sort to not hurt them
 	local tab = {}
-	local r = 2*range
-	for i = -r, r do
-		for j = -r, r do
-			for h = r,-r,-1 do
-				local p = {x=pos.x+j, y=pos.y+h, z=pos.z+i}
+	local rx2 = 2 * r
+	local rupdown = r_up + r_down
+	for i = -rx2, rx2 do
+		for j = -rx2, rx2 do
+			if i ~= 0
+			or j ~= 0 then
+				for h = rupdown, -rupdown, -1 do
+					local p = {x=pos.x+j, y=pos.y+h, z=pos.z+i}
 
-				-- tests if a trunk is at the current pos
-				local nd = get_node(p)
-				if table.icontains(trees, nd.name)
-				and nd.param2 == 0
-				and (pos.x ~= p.x or pos.z ~= p.z) then
-					-- search for a leaves or fruit node next to the trunk
-					local leaf = get_node({x=p.x, y=p.y+1, z=p.z}).name
-					local leaf_found = table.icontains(leaves, leaf) or table.icontains(fruits, leaf)
-					if not leaf_found then
-						leaf = get_node({x=p.x, y=p.y, z=p.z+1}).name
-						leaf_found = table.icontains(leaves, leaf) or table.icontains(fruits, leaf)
-					end
+					-- tests if a trunk is at the current pos and below it
+					local nd = get_node(p)
+					if is_trunk_of_tree(trees, nd)
+					and is_trunk_of_tree(trees, get_node{x=p.x, y=p.y-1, z=p.z}) then
+						-- search for a leaves or fruit node next to the trunk
+						local leaf = get_node{x=p.x, y=p.y+1, z=p.z}.name
+						local leaf_found = table.icontains(leaves, leaf)
+							or table.icontains(fruits, leaf)
+						if not leaf_found then
+							leaf = get_node{x=p.x, y=p.y, z=p.z+1}.name
+							leaf_found = table.icontains(leaves, leaf)
+								or table.icontains(fruits, leaf)
+						end
 
-					if leaf_found then
-						local z1 = math.max(-range+i, -range)
-						local z2 = math.min(range+i, range)
-						local y1 = math.max(-range+h, -range)
-						local y2 = math.min(range+h, range)
-						local x1 = math.max(-range+j, -range)
-						local x2 = math.min(range+j, range)
-						for z = z1,z2 do
-							for y = y1,y2 do
-								for x = x1,x2 do
-									tab[poshash{x=x, y=y, z=z}] = true
+						if leaf_found then
+							-- mark places which should not be removed
+							local z1 = math.max(-r+i, -r)
+							local z2 = math.min(r+i, r)
+							local y1 = math.max(-r_down+h, -r_down)
+							local y2 = math.min(r_up+h, r_up)
+							local x1 = math.max(-r+j, -r)
+							local x2 = math.min(r+j, r)
+							for z = z1,z2 do
+								for y = y1,y2 do
+									for x = x1,x2 do
+										tab[poshash{x=x, y=y, z=z}] = true
+									end
 								end
 							end
+							break
 						end
 					end
 				end
 			end
 		end
 	end
-	--minetest.chat_send_all(dump(tab))	<— I used these to find my mistake
+	-- now, get the head positions without the neighbouring trees
 	local tab2,n = {},1
-	for z = -range,range do
-		for y = -range,range do
-			for x = -range,range do
+	for z = -r,r do
+		for y = -r_down,r_up do
+			for x = -r,r do
 				local p = {x=x, y=y, z=z}
 				if not tab[poshash(p)] then
 					tab2[n] = p
@@ -285,18 +299,27 @@ function capitate_funcs.default(pos, tr, node_above, digger)
 	local range = tr.range
 	local inv = digger:get_inventory()
 	local head_ps
-	head_ps,n = find_next_trees(np, range, trees, leaves, fruits)	--definition of the leavespositions
+	--definition of possible leaves and fruitspositions
+	head_ps,n = find_next_trees(np, range, tr.range_up or range,
+		tr.range_down or range, trees, leaves, fruits)
 	for i = 1,n do
 		local p = vector.add(np, head_ps[i])
 		local node = get_node(p)
 		local nodename = node.name
-		if not table.icontains(trees, nodename)
-		or node.param2 ~= 0 then
+		local is_trunk = table.icontains(trees, nodename)
+		if node.param2 ~= 0
+		or not is_trunk then
 			if table.icontains(leaves, nodename) then
 				remove_leaf(p, nodename, inv, node, digger)
 			elseif table.icontains(fruits, nodename) then
 				destroy_node(p, node, digger)
 			end
+		elseif is_trunk
+		and tr.trunk_fruit_vertical
+		and table.icontains(fruits, nodename)
+		and not table.icontains(trees, get_node{x=p.x, y=p.y+1, z=p.z})
+		and not table.icontains(trees, get_node{x=p.x, y=p.y-1, z=p.z}) then
+			destroy_node(p, node, digger)
 		end
 	end
 	return true
@@ -474,7 +497,9 @@ local function capitate_tree(pos, node, digger)
 	end
 	clean_cache()
 	capitating = false
-	minetest.log("info", "[treecapitator] tree capitated at ("..pos.x.."|"..pos.y.."|"..pos.z..") after ca. " .. (minetest.get_us_time() - t1) / 1000000 .. " s")
+	minetest.log("info", "[treecapitator] tree capitated at ("
+		.. pos.x .. "|" .. pos.y .. "|" .. pos.z .. ") after ca. "
+		.. (minetest.get_us_time() - t1) / 1000000 .. " s")
 end
 
 local delay = treecapitator.delay
@@ -496,7 +521,8 @@ end
 minetest.after(0, function()
 	for _,tree in pairs(tmp_trees) do
 		if not minetest.registered_nodes[tree].after_dig_node then
-			minetest.log("error", "[treecapitator] Error: Overwriting "..tree.." went wrong.")
+			minetest.log("error", "[treecapitator] Error: Overwriting "
+				.. tree .. " went wrong.")
 			treecapitator.rest_tree_nodes[#treecapitator.rest_tree_nodes+1] = tree
 		end
 	end
@@ -543,11 +569,13 @@ function treecapitator.register_tree(tab)
 	for _,tree in pairs(tab.trees) do
 		local data = minetest.registered_nodes[tree]
 		if not data then
-			minetest.log("info", "[treecapitator] Info: "..tree.." isn't registered yet.")
+			minetest.log("info", "[treecapitator] Info: "
+				.. tree .. " isn't registered yet.")
 			treecapitator.rest_tree_nodes[#treecapitator.rest_tree_nodes+1] = tree
 		else
 			if data.after_dig_node then
-				minetest.log("info", "[treecapitator] Info: "..tree.." already has an after_dig_node.")
+				minetest.log("info", "[treecapitator] Info: " .. tree
+					.. " already has an after_dig_node.")
 				treecapitator.rest_tree_nodes[#treecapitator.rest_tree_nodes+1] = tree
 			else
 				override(tree, data)
@@ -559,7 +587,7 @@ end
 
 dofile(minetest.get_modpath"treecapitator".."/trees.lua")
 
----------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 
 --use register_on_dignode if trunks are left

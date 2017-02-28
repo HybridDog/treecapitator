@@ -3,14 +3,22 @@ treecapitator.register_tree({
 	trees = {<node1>, <node2>, ...},
 	leaves = {<node1>, <node2>, ...},
 	range = <range>,
+	range_up = <range>,
+	range_down = <range>,
 	fruits = {<node1>, <node2>, ...},
+	trunk_fruit_vertical = <some_boolean>,
 	type = "default",
 })
 
 trees:	the straight stem nodes with param2=0
 leaves:	nodes of the tree head which only drop their main item if drop_leaf is enabled
-range:	the size of the tree head
+range:	the size of the tree head cuboid
+range_up: range upwards beginning from the highest trunk node to head top
+	if omitted it's set to range
+range_down: like range_up but downwards
 fruits:	similar to leaves but without the drop_leaf setting condition
+trunk_fruit_vertical: set this to true to make a trunk node, if it's in trees
+	and fruits, get removed even if it isn't rotated (param2 = 0)
 
 
 treecapitator.register_tree({
@@ -32,12 +40,25 @@ max_nodes:	maximum amount of nodes the tree is allowed to consist of
 num_trunks_min…
 ]]
 
-treecapitator.register_tree({
-	trees = {"default:tree"},
-	leaves = {"default:leaves"},
-	range = 2,
-	fruits = {"default:apple"}
-})
+local mgname = minetest.get_mapgen_setting"mg_name"
+if mgname == "v7" then
+	treecapitator.register_tree{
+		trees = {"default:tree"},
+		leaves = {"default:leaves"},
+		range = 2,
+		range_up = 4,
+		range_down = 0,
+		fruits = {"default:apple", "default:tree"},
+		trunk_fruit_vertical = true
+	}
+else
+	treecapitator.register_tree{
+		trees = {"default:tree"},
+		leaves = {"default:leaves"},
+		range = 2,
+		fruits = {"default:apple"}
+	}
+end
 
 treecapitator.register_tree({
 	trees = {"default:pine_tree"},
