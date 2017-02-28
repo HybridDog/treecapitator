@@ -23,3 +23,5 @@ If you got ideas or found bugs, please tell them to me.
 TODO:  
 * add more trees  
 * add more types of trees
+* fix mgv7 neighbour tree detection, there sometimes is a sheet removed
+* use range_up and range_down for other trees too for greater precision in neighbour detection
