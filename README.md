@@ -20,8 +20,9 @@ If you got ideas or found bugs, please tell them to me.
 
 ﻿[14.03.2015] Added sound of a falling tree (taken from there http://www.freesound.org/people/ecfike/sounds/139952/). Made "drop_items" and "drop_leaf" both "true" by default. (mintpick)
 
-TODO:  
-* add more trees  
+TODO:
+* add more trees
 * add more types of trees
-* fix mgv7 neighbour tree detection, there sometimes is a sheet removed
+* fix mgv7 default apple tree neighbour tree detection, there sometimes is a sheet removed
+* mgv7 jungletree
 * use range_up and range_down for other trees too for greater precision in neighbour detection
