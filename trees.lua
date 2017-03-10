@@ -88,6 +88,7 @@ treecapitator.register_tree({
 	range = 4,
 })
 
+-- this should be moved to nyanland
 if minetest.get_modpath("nyanland") then
 	treecapitator.register_tree({
 		trees = {"nyanland:mesetree", "nyanland:healstone"},
