@@ -21,7 +21,7 @@ treecapitator = {
 
 -- load custom settings
 for name,v in pairs(treecapitator) do
-	local setting = "treecapitator."..name
+	local setting = "treecapitator." .. name
 	--local typ = type(v)
 	local neuv
 	if type(v) == "boolean" then
