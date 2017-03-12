@@ -45,9 +45,13 @@ treecapitator.trees = {}
 treecapitator.rest_tree_nodes = {}
 
 
---------------------------------------------fcts----------------------------------------------
+--------------------------------------------fcts--------------------------------
 
 local poshash = minetest.hash_node_position
+
+local function hash2(x, y)
+	return y * 0x10000 + x
+end
 
 -- don't use minetest.get_node more times for the same position (caching)
 local known_nodes
