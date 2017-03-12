@@ -187,7 +187,8 @@ and minetest.get_modpath("moretrees") then
 	})
 
 	treecapitator.register_tree({
-		trees = {"moretrees:rubber_tree_trunk","rubber_tree_trunk_empty"},
+		trees = {"moretrees:rubber_tree_trunk",
+			"moretrees:rubber_tree_trunk_empty"},
 		leaves = {"moretrees:rubber_tree_leaves"},
 		range = 8,
 	})
