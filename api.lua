@@ -19,16 +19,19 @@ local function after_dig_wrap(pos, _,_, digger)
 end
 
 -- For the usage of this function, see trees.lua.
-function treecapitator.register_tree(tab)
+function treecapitator.register_tree(tr)
 	for name,value in pairs(treecapitator.default_tree) do
-		if tab[name] == nil then
-			tab[name] = value	--replaces not defined stuff
+		if tr[name] == nil then
+			tr[name] = value	--replaces not defined stuff
 		end
 	end
-	treecapitator.trees[#treecapitator.trees+1] = tab
+	treecapitator.trees[#treecapitator.trees+1] = tr
+	if treecapitator.after_register[tr.type] then
+		treecapitator.after_register[tr.type](tr)
+	end
 
-	for i = 1,#tab.trees do
-		local nodename = tab.trees[i]
+	for i = 1,#tr.trees do
+		local nodename = tr.trees[i]
 		local data = minetest.registered_nodes[nodename]
 		if not data then
 			error(nodename .. " has to be registered before calling " ..
