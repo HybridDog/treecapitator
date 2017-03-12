@@ -17,6 +17,7 @@ treecapitator = {
 		fruits = {},
 		type = "default",
 	},
+	after_register = {},
 }
 
 -- load custom settings
@@ -133,8 +134,8 @@ local capitate_funcs = {}
 
 -- tests if the node is a trunk which could belong to the same tree sort
 local function is_trunk_of_tree(trees, node)
-	return table_contains(trees, node.name)
-		and node.param2 == 0
+	return node.param2 == 0
+		and trees ^ node.name
 end
 
 -- test if the trunk node there is the top trunk node of a neighbour tree
@@ -151,11 +152,11 @@ local function get_a_tree(pos, tab, tr, i,h,j)
 
 	-- search for a leaves or fruit node next to the trunk
 	local leaf = get_node{x=p.x, y=p.y+1, z=p.z}.name
-	if not table_contains(tr.leaves, leaf)
-	and not table_contains(tr.fruits, leaf) then
+	if not tr.leaves ^ leaf
+	and not tr.fruits ^ leaf then
 		local leaf = get_node{x=p.x, y=p.y, z=p.z+1}.name
-		if not table_contains(tr.leaves, leaf)
-		and not table_contains(tr.fruits, leaf) then
+		if not tr.leaves ^ leaf
+		and not tr.fruits ^ leaf then
 			return false
 		end
 	end
@@ -237,7 +238,8 @@ function capitate_funcs.default(pos, tr, node_above, digger)
 	local trunks, n = {{{x=pos.x, y=pos.y+1, z=pos.z}, node_above}}, 2
 	local np = {x=pos.x, y=pos.y+2, z=pos.z}
 	local nd = get_node(np)
-	while table_contains(trees, nd.name) and nd.param2 == 0 do
+	while nd.param2 == 0
+	and trees ^ nd.name do
 		trunks[n] = {vector.new(np), nd}
 		n = n+1
 		np.y = np.y+1
@@ -249,11 +251,11 @@ function capitate_funcs.default(pos, tr, node_above, digger)
 	local fruits = tr.fruits
 
 	-- abort if the tree lacks leaves/fruits
-	if not table_contains(leaves, nd.name)
-	and not table_contains(fruits, nd.name) then
+	if not leaves ^ nd.name
+	and not fruits ^ nd.name then
 		local leaf = get_node{x=np.x, y=np.y, z=np.z+1}.name
-		if not table_contains(leaves, leaf)
-		and not table_contains(fruits, leaf) then
+		if not leaves ^ leaf
+		and not fruits ^ leaf then
 			return
 		end
 	end
@@ -272,19 +274,19 @@ function capitate_funcs.default(pos, tr, node_above, digger)
 		local p = vector.add(np, head_ps[i])
 		local node = get_node(p)
 		local nodename = node.name
-		local is_trunk = table_contains(trees, nodename)
+		local is_trunk = trees ^ nodename
 		if node.param2 ~= 0
 		or not is_trunk then
-			if table_contains(leaves, nodename) then
+			if leaves ^ nodename then
 				leaves_toremove[#leaves_toremove+1] = {p, node}
-			elseif table_contains(fruits, nodename) then
+			elseif fruits ^ nodename then
 				fruits_toremove[#fruits_toremove+1] = {p, node}
 			end
 		elseif is_trunk
 		and tr.trunk_fruit_vertical
-		and table_contains(fruits, nodename)
-		and not table_contains(trees, get_node{x=p.x, y=p.y+1, z=p.z})
-		and not table_contains(trees, get_node{x=p.x, y=p.y-1, z=p.z}) then
+		and fruits ^ nodename
+		and not trees ^ get_node{x=p.x, y=p.y+1, z=p.z}.name
+		and not trees ^ get_node{x=p.x, y=p.y-1, z=p.z}.name then
 			trunks[#trunks+1] = {p, node}
 		end
 	end
@@ -301,6 +303,18 @@ function capitate_funcs.default(pos, tr, node_above, digger)
 		destroy_node(trunks[i][1], trunks[i][2], digger)
 	end
 	return true
+end
+
+-- metatable for shorter code: trees ^ name ≙ name ∈ trees
+local mt_default = {
+	__pow = table_contains
+}
+treecapitator.after_register.default = function(tr)
+	setmetatable(tr.trees, mt_default)
+	setmetatable(tr.leaves, mt_default)
+	setmetatable(tr.fruits, mt_default)
+	tr.range_up = tr.range_up or tr.range
+	tr.range_down = tr.range_down or tr.range
 end
 
 
