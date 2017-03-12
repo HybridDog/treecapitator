@@ -152,8 +152,8 @@ and minetest.get_modpath("moretrees") then
 		trees = {"moretrees:fir_trunk"},
 		leaves = {"moretrees:fir_leaves", "moretrees:fir_leaves_bright"},
 		range_up = 2,
-		range_down = 18,
-		range = 4,
+		range_down = 21,
+		range = 7,
 		fruits = {"moretrees:fir_cone", "moretrees:fir_trunk"},
 		trunk_fruit_vertical = true
 	})
