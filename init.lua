@@ -1,7 +1,7 @@
 local load_time_start = minetest.get_us_time()
 
 
---------------------------------------Settings----------------------------------------------
+--------------------------------------Settings----------------------------------
 
 -- default settings
 treecapitator = {
@@ -35,7 +35,7 @@ for name,v in pairs(treecapitator) do
 end
 
 
----------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 
 --the table where the trees are stored at
@@ -61,11 +61,6 @@ local function remove_node(pos)
 	known_nodes[poshash(pos)] = {name="air", param2=0}
 	minetest.remove_node(pos)
 	minetest.check_for_falling(pos)
-end
-
-local function dig_node(pos, node, digger)
-	known_nodes[poshash(pos)] = {name="air", param2=0}
-	minetest.node_dig(pos, node, digger)
 end
 
 local function get_node(pos)
@@ -103,22 +98,25 @@ else
 		end
 	end
 
-	destroy_node = dig_node
+	destroy_node = function(pos, node, digger)
+		known_nodes[poshash(pos)] = {name="air", param2=0}
+		minetest.node_dig(pos, node, digger)
+	end
 end
 
 if not treecapitator.drop_leaf then
-	function remove_leaf(p, leaf, inv)
-		local leaves_drops = minetest.get_node_drops(leaf)
+	function remove_leaf(pos, node, inv)
+		local leaves_drops = minetest.get_node_drops(node.name)
 		for _, itemname in pairs(leaves_drops) do
-			if itemname ~= leaf then
-				drop_leaf(p, itemname, inv)
+			if itemname ~= node.name then
+				drop_leaf(pos, itemname, inv)
 			end
 		end
-		remove_node(p)	--remove the leaves
+		remove_node(pos)	--remove the leaves
 	end
 else
-	function remove_leaf(p, _, _, node, digger)
-		destroy_node(p, node, digger)
+	function remove_leaf(pos, node, _, digger)
+		destroy_node(pos, node, digger)
 	end
 end
 
@@ -154,42 +152,45 @@ local function find_next_trees(pos, r,r_up,r_down, trees, leaves, fruits)
 	local rupdown = r_up + r_down
 	for i = -rx2, rx2 do
 		for j = -rx2, rx2 do
-			if i ~= 0
-			or j ~= 0 then
-				for h = rupdown, -rupdown, -1 do
-					local p = {x=pos.x+j, y=pos.y+h, z=pos.z+i}
+			local bot = -rupdown
+			if i == 0
+			and j == 0 then
+				-- only detect neighbours
+				bot = 1
+			end
+			for h = rupdown, bot, -1 do
+				local p = {x=pos.x+j, y=pos.y+h, z=pos.z+i}
 
-					-- tests if a trunk is at the current pos and below it
-					local nd = get_node(p)
-					if is_trunk_of_tree(trees, nd)
-					and is_trunk_of_tree(trees, get_node{x=p.x, y=p.y-1, z=p.z}) then
-						-- search for a leaves or fruit node next to the trunk
-						local leaf = get_node{x=p.x, y=p.y+1, z=p.z}.name
-						local leaf_found = table.icontains(leaves, leaf)
+				-- tests if a trunk is at the current pos and below it
+				local nd = get_node(p)
+				if is_trunk_of_tree(trees, nd)
+				and is_trunk_of_tree(trees, get_node{x=p.x, y=p.y-1, z=p.z}) then
+					-- search for a leaves or fruit node next to the trunk
+					local leaf = get_node{x=p.x, y=p.y+1, z=p.z}.name
+					local leaf_found = table.icontains(leaves, leaf)
+						or table.icontains(fruits, leaf)
+					if not leaf_found then
+						leaf = get_node{x=p.x, y=p.y, z=p.z+1}.name
+						leaf_found = table.icontains(leaves, leaf)
 							or table.icontains(fruits, leaf)
-						if not leaf_found then
-							leaf = get_node{x=p.x, y=p.y, z=p.z+1}.name
-							leaf_found = table.icontains(leaves, leaf)
-								or table.icontains(fruits, leaf)
-						end
+					end
 
-						if leaf_found then
-							-- mark places which should not be removed
-							local z1 = math.max(-r+i, -r)
-							local z2 = math.min(r+i, r)
-							local y1 = math.max(-r_down+h, -r_down)
-							local y2 = math.min(r_up+h, r_up)
-							local x1 = math.max(-r+j, -r)
-							local x2 = math.min(r+j, r)
-							for z = z1,z2 do
-								for y = y1,y2 do
-									for x = x1,x2 do
-										tab[poshash{x=x, y=y, z=z}] = true
-									end
+					if leaf_found then
+						-- mark places which should not be removed
+						local z1 = math.max(-r+i, -r)
+						local z2 = math.min(r+i, r)
+						local y1 = math.max(-r_down+h, -r_down)
+						local y2 = math.min(r_up+h, r_up)
+						local x1 = math.max(-r+j, -r)
+						local x2 = math.min(r+j, r)
+						for z = z1,z2 do
+							for y = y1,y2 do
+								for x = x1,x2 do
+									tab[poshash{x=x, y=y, z=z}] = true
 								end
 							end
-							break
 						end
+						break
 					end
 				end
 			end
@@ -198,8 +199,14 @@ local function find_next_trees(pos, r,r_up,r_down, trees, leaves, fruits)
 	-- now, get the head positions without the neighbouring trees
 	local tab2,n = {},1
 	for z = -r,r do
-		for y = -r_down,r_up do
-			for x = -r,r do
+		for x = -r,r do
+			local bot = -r_down
+			if x == 0
+			and z == 0 then
+				-- avoid adding the stem
+				bot = 1
+			end
+			for y = bot,r_up do
 				local p = {x=x, y=y, z=z}
 				if not tab[poshash(p)] then
 					tab2[n] = p
@@ -261,12 +268,12 @@ local capitate_funcs = {}
 function capitate_funcs.default(pos, tr, node_above, digger)
 	local trees = tr.trees
 
-	-- fill tab with the stem trunks
-	local tab, n = {{{x=pos.x, y=pos.y+1, z=pos.z}, node_above}}, 2
+	-- get the stem trunks
+	local trunks, n = {{{x=pos.x, y=pos.y+1, z=pos.z}, node_above}}, 2
 	local np = {x=pos.x, y=pos.y+2, z=pos.z}
 	local nd = get_node(np)
 	while table.icontains(trees, nd.name) and nd.param2 == 0 do
-		tab[n] = {vector.new(np), nd}
+		trunks[n] = {vector.new(np), nd}
 		n = n+1
 		np.y = np.y+1
 		nd = get_node(np)
@@ -290,18 +297,14 @@ function capitate_funcs.default(pos, tr, node_above, digger)
 	if treecapitator.play_sound then
 		minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
 	end
-	for i = 1,n-1 do
-		local pos,node = unpack(tab[i])
-		destroy_node(pos, node, digger)
-	end
 
-	-- remove leaves and fruits
+	-- get leaves, fruits and stem fruits
 	local range = tr.range
-	local inv = digger:get_inventory()
 	local head_ps
-	--definition of possible leaves and fruitspositions
 	head_ps,n = find_next_trees(np, range, tr.range_up or range,
 		tr.range_down or range, trees, leaves, fruits)
+	local leaves_toremove = {}
+	local fruits_toremove = {}
 	for i = 1,n do
 		local p = vector.add(np, head_ps[i])
 		local node = get_node(p)
@@ -310,17 +313,29 @@ function capitate_funcs.default(pos, tr, node_above, digger)
 		if node.param2 ~= 0
 		or not is_trunk then
 			if table.icontains(leaves, nodename) then
-				remove_leaf(p, nodename, inv, node, digger)
+				leaves_toremove[#leaves_toremove+1] = {p, node}
 			elseif table.icontains(fruits, nodename) then
-				destroy_node(p, node, digger)
+				fruits_toremove[#fruits_toremove+1] = {p, node}
 			end
 		elseif is_trunk
 		and tr.trunk_fruit_vertical
 		and table.icontains(fruits, nodename)
 		and not table.icontains(trees, get_node{x=p.x, y=p.y+1, z=p.z})
 		and not table.icontains(trees, get_node{x=p.x, y=p.y-1, z=p.z}) then
-			destroy_node(p, node, digger)
+			trunks[#trunks+1] = {p, node}
 		end
+	end
+
+	-- remove fruits at first due to attachment (somehow still doesn't work)
+	for i = 1,#fruits_toremove do
+		destroy_node(fruits_toremove[i][1], fruits_toremove[i][2], digger)
+	end
+	local inv = digger:get_inventory()
+	for i = 1,#leaves_toremove do
+		remove_leaf(leaves_toremove[i][1], leaves_toremove[i][2], inv, digger)
+	end
+	for i = 1,#trunks do
+		destroy_node(trunks[i][1], trunks[i][2], digger)
 	end
 	return true
 end
@@ -395,7 +410,7 @@ function capitate_funcs.acacia(pos, tr, node_above, digger)
 						local p = {x=p.x+x, y=p.y, z=p.z+z}
 						local node = get_node(p)
 						if node.name == tr.leaf then
-							remove_leaf(p, tr.leaf, inv, node, digger)
+							remove_leaf(p, node, inv, digger)
 						end
 					end
 					i = i+1
@@ -466,7 +481,7 @@ function capitate_funcs.moretrees(pos, tr, _, digger)
 		local node = get_node(p)
 		local nodename = node.name
 		if table.icontains(leaves, nodename) then
-			remove_leaf(p, nodename, inv, node, digger)
+			remove_leaf(p, node, inv, digger)
 		else
 			destroy_node(p, node, digger)
 		end
