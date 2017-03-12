@@ -1,7 +1,7 @@
 local load_time_start = minetest.get_us_time()
 
 
---------------------------------------Settings----------------------------------
+------------------------------------- Settings ---------------------------------
 
 -- default settings
 treecapitator = {
@@ -35,17 +35,7 @@ for name,v in pairs(treecapitator) do
 end
 
 
---------------------------------------------------------------------------------
-
-
---the table where the trees are stored at
-treecapitator.trees = {}
-
---a table of trunks which couldn't be redefined
-treecapitator.rest_tree_nodes = {}
-
-
---------------------------------------------fcts--------------------------------
+-------------------------- Common functions ------------------------------------
 
 local poshash = minetest.hash_node_position
 
@@ -142,6 +132,13 @@ local function findtree(node)
 	return table.icontains(treecapitator.rest_tree_nodes, node.name)
 end
 
+
+-- the functions for the available types
+local capitate_funcs = {}
+
+
+------------------------ Function for regular trees ----------------------------
+
 -- tests if the node is a trunk which could belong to the same tree sort
 local function is_trunk_of_tree(trees, node)
 	return table.icontains(trees, node.name)
@@ -222,53 +219,6 @@ local function find_next_trees(pos, r,r_up,r_down, trees, leaves, fruits)
 	return tab2, n-1
 end
 
--- table iteration instead of recursion
-local function get_tab(pos, func, max)
-	local todo = {pos}
-	local n = 1
-	local tab_avoid = {[poshash(pos)] = true}
-	local tab_done,num = {pos},2
-	while n ~= 0 do
-		local p = todo[n]
-		n = n-1
-		--[[
-		for i = -1,1,2 do
-			for _,p2 in pairs{
-				{x=p.x+i, y=p.y, z=p.z},
-				{x=p.x, y=p.y+i, z=p.z},
-				{x=p.x, y=p.y, z=p.z+i},
-			} do]]
-		for i = -1,1 do
-			for j = -1,1 do
-				for k = -1,1 do
-					local p2 = {x=p.x+i, y=p.y+j, z=p.z+k}
-					local vi = poshash(p2)
-					if not tab_avoid[vi]
-					and func(p2) then
-						n = n+1
-						todo[n] = p2
-
-						tab_avoid[vi] = true
-
-						tab_done[num] = p2
-						num = num+1
-
-						if max
-						and num > max then
-							return false
-						end
-					end
-				end
-			end
-		end
-	end
-	return tab_done
-end
-
-
--- the functions for the available types
-local capitate_funcs = {}
-
 function capitate_funcs.default(pos, tr, node_above, digger)
 	local trees = tr.trees
 
@@ -343,6 +293,9 @@ function capitate_funcs.default(pos, tr, node_above, digger)
 	end
 	return true
 end
+
+
+--------------------- Acacia tree function -------------------------------------
 
 function capitate_funcs.acacia(pos, tr, node_above, digger)
 	local trunk = tr.trees[1]
@@ -434,6 +387,52 @@ function capitate_funcs.acacia(pos, tr, node_above, digger)
 	return true
 end
 
+
+---------------------- A moretrees capitation function -------------------------
+
+-- table iteration instead of recursion
+local function get_tab(pos, func, max)
+	local todo = {pos}
+	local n = 1
+	local tab_avoid = {[poshash(pos)] = true}
+	local tab_done,num = {pos},2
+	while n ~= 0 do
+		local p = todo[n]
+		n = n-1
+		--[[
+		for i = -1,1,2 do
+			for _,p2 in pairs{
+				{x=p.x+i, y=p.y, z=p.z},
+				{x=p.x, y=p.y+i, z=p.z},
+				{x=p.x, y=p.y, z=p.z+i},
+			} do]]
+		for i = -1,1 do
+			for j = -1,1 do
+				for k = -1,1 do
+					local p2 = {x=p.x+i, y=p.y+j, z=p.z+k}
+					local vi = poshash(p2)
+					if not tab_avoid[vi]
+					and func(p2) then
+						n = n+1
+						todo[n] = p2
+
+						tab_avoid[vi] = true
+
+						tab_done[num] = p2
+						num = num+1
+
+						if max
+						and num > max then
+							return false
+						end
+					end
+				end
+			end
+		end
+	end
+	return tab_done
+end
+
 function capitate_funcs.moretrees(pos, tr, _, digger)
 	local trees = tr.trees
 	local leaves = tr.leaves
@@ -494,9 +493,11 @@ function capitate_funcs.moretrees(pos, tr, _, digger)
 end
 
 
---the function which is used for capitating
+--------------------------- api interface --------------------------------------
+
+-- the function which is used for capitating the api
 local capitating = false	--necessary if minetest.node_dig is used
-local function capitate_tree(pos, node, digger)
+function treecapitator.capitate_tree(pos, node, digger)
 	if capitating
 	or not digger
 	or digger:get_player_control().sneak
@@ -516,103 +517,26 @@ local function capitate_tree(pos, node, digger)
 	end
 	clean_cache()
 	capitating = false
-	minetest.log("info", "[treecapitator] tree capitated at ("
-		.. pos.x .. "|" .. pos.y .. "|" .. pos.z .. ") after ca. "
-		.. (minetest.get_us_time() - t1) / 1000000 .. " s")
+	minetest.log("info", "[treecapitator] tree capitated at (" ..
+		pos.x .. "|" .. pos.y .. "|" .. pos.z .. ") after ca. " ..
+		(minetest.get_us_time() - t1) / 1000000 .. " s")
 end
 
+-- delayed capitating
 local delay = treecapitator.delay
 if delay > 0 then
-	local oldfunc = capitate_tree
-	function capitate_tree(...)
+	local oldfunc = treecapitator.capitate_tree
+	function treecapitator.capitate_tree(...)
 		minetest.after(delay, function(...)
 			oldfunc(...)
 		end, ...)
 	end
 end
 
---adds trunks to rest_tree_nodes if they were overwritten by other mods
-local tmp_trees = {}
-local function test_overwritten(tree)
-	tmp_trees[#tmp_trees+1] = tree
-end
 
-minetest.after(0, function()
-	for _,tree in pairs(tmp_trees) do
-		if not minetest.registered_nodes[tree].after_dig_node then
-			minetest.log("error", "[treecapitator] Error: Overwriting "
-				.. tree .. " went wrong.")
-			treecapitator.rest_tree_nodes[#treecapitator.rest_tree_nodes+1] = tree
-		end
-	end
-	tmp_trees = nil
-end)
-
--- the function to overide trunks
-local override
-if minetest.override_item then
-	function override(name)
-		minetest.override_item(name, {
-			after_dig_node = function(pos, _, _, digger)
-				capitate_tree(pos, 0, digger)
-			end
-		})
-	end
-else
-	minetest.log("deprecated", "minetest.override_item isn't supported")
-	table.copy = table.copy or function(tab)
-		local tab2 = {}
-		for n,i in pairs(tab) do
-			tab2[n] = i
-		end
-		return tab2
-	end
-	function override(name, data)
-		data = table.copy(data)
-		data.after_dig_node = function(pos, _, _, digger)
-			capitate_tree(pos, 0, digger)
-		end
-		minetest.register_node(":"..name, data)
-	end
-end
-
---the function to register trees to become capitated
-local num = 1
-function treecapitator.register_tree(tab)
-	for name,value in pairs(treecapitator.default_tree) do
-		tab[name] = tab[name] or value	--replaces not defined stuff
-	end
-	treecapitator.trees[num] = tab
-	num = num+1
-
-	for _,tree in pairs(tab.trees) do
-		local data = minetest.registered_nodes[tree]
-		if not data then
-			minetest.log("info", "[treecapitator] Info: "
-				.. tree .. " isn't registered yet.")
-			treecapitator.rest_tree_nodes[#treecapitator.rest_tree_nodes+1] = tree
-		else
-			if data.after_dig_node then
-				minetest.log("info", "[treecapitator] Info: " .. tree
-					.. " already has an after_dig_node.")
-				treecapitator.rest_tree_nodes[#treecapitator.rest_tree_nodes+1] = tree
-			else
-				override(tree, data)
-				test_overwritten(tree)
-			end
-		end
-	end
-end
-
-dofile(minetest.get_modpath"treecapitator".."/trees.lua")
-
---------------------------------------------------------------------------------
-
-
---use register_on_dignode if trunks are left
-if treecapitator.rest_tree_nodes[1] then
-	minetest.register_on_dignode(capitate_tree)
-end
+local path = minetest.get_modpath"treecapitator" .. DIR_DELIM
+dofile(path .. "api.lua")
+dofile(path .. "trees.lua")
 
 
 local time = (minetest.get_us_time() - load_time_start) / 1000000
