@@ -39,9 +39,9 @@ end
 
 local poshash = minetest.hash_node_position
 
-local function hash2(x, y)
-	return y * 0x10000 + x
-end
+--~ local function hash2(x, y)
+	--~ return y * 0x10000 + x
+--~ end
 
 -- don't use minetest.get_node more times for the same position (caching)
 local known_nodes
@@ -115,21 +115,13 @@ else
 end
 
 
-table.icontains = table.icontains or function(t, v)
+table_contains = function(t, v)
 	for i = 1,#t do
 		if t[i] == v then
 			return true
 		end
 	end
 	return false
-end
-
---tests if the node is a trunk
-local function findtree(node)
-	if node == 0 then
-		return true
-	end
-	return table.icontains(treecapitator.rest_tree_nodes, node.name)
 end
 
 
@@ -141,58 +133,77 @@ local capitate_funcs = {}
 
 -- tests if the node is a trunk which could belong to the same tree sort
 local function is_trunk_of_tree(trees, node)
-	return table.icontains(trees, node.name)
+	return table_contains(trees, node.name)
 		and node.param2 == 0
 end
 
+-- test if the trunk node there is the top trunk node of a neighbour tree
+-- if so, constrain the possible leaves positions
+local function get_a_tree(pos, tab, tr, i,h,j)
+	local p = {x=pos.x+j, y=pos.y+h, z=pos.z+i}
+
+	-- tests if a trunk is at the current pos and below it
+	local nd = get_node(p)
+	if not is_trunk_of_tree(tr.trees, nd)
+	or not is_trunk_of_tree(tr.trees, get_node{x=p.x, y=p.y-1, z=p.z}) then
+		return false
+	end
+
+	-- search for a leaves or fruit node next to the trunk
+	local leaf = get_node{x=p.x, y=p.y+1, z=p.z}.name
+	if not table_contains(tr.leaves, leaf)
+	and not table_contains(tr.fruits, leaf) then
+		local leaf = get_node{x=p.x, y=p.y, z=p.z+1}.name
+		if not table_contains(tr.leaves, leaf)
+		and not table_contains(tr.fruits, leaf) then
+			return false
+		end
+	end
+
+	local r = tr.range
+	local r_up = tr.range_up or r
+	local r_down = tr.range_down or r
+
+	-- tag places which should not be removed
+	local z1 = math.max(-r + i, -r)
+	local z2 = math.min(r + i, r)
+	local y1 = math.max(-r_down + h, -r_down)
+	local y2 = math.min(r_up + h, r_up)
+	local x1 = math.max(-r + j, -r)
+	local x2 = math.min(r + j, r)
+	for z = z1,z2 do
+		for y = y1,y2 do
+			local i = poshash{x=x1, y=y, z=z}
+			for _ = x1,x2 do
+				tab[i] = true
+				i = i+1
+			end
+		end
+	end
+	return true
+end
+
 --returns positions for leaves allowed to be dug
-local function find_next_trees(pos, r,r_up,r_down, trees, leaves, fruits)
+local function find_valid_head_ps(pos, tr)
+	local r = tr.range
+	local r_up = tr.range_up or r
+	local r_down = tr.range_down or r
+
 	-- firstly, detect neighbour trees of the same sort to not hurt them
 	local tab = {}
 	local rx2 = 2 * r
 	local rupdown = r_up + r_down
-	for i = -rx2, rx2 do
-		for j = -rx2, rx2 do
+	for z = -rx2, rx2 do
+		for x = -rx2, rx2 do
 			local bot = -rupdown
-			if i == 0
-			and j == 0 then
+			if z == 0
+			and x == 0 then
 				-- only detect neighbours
 				bot = 1
 			end
-			for h = rupdown, bot, -1 do
-				local p = {x=pos.x+j, y=pos.y+h, z=pos.z+i}
-
-				-- tests if a trunk is at the current pos and below it
-				local nd = get_node(p)
-				if is_trunk_of_tree(trees, nd)
-				and is_trunk_of_tree(trees, get_node{x=p.x, y=p.y-1, z=p.z}) then
-					-- search for a leaves or fruit node next to the trunk
-					local leaf = get_node{x=p.x, y=p.y+1, z=p.z}.name
-					local leaf_found = table.icontains(leaves, leaf)
-						or table.icontains(fruits, leaf)
-					if not leaf_found then
-						leaf = get_node{x=p.x, y=p.y, z=p.z+1}.name
-						leaf_found = table.icontains(leaves, leaf)
-							or table.icontains(fruits, leaf)
-					end
-
-					if leaf_found then
-						-- mark places which should not be removed
-						local z1 = math.max(-r+i, -r)
-						local z2 = math.min(r+i, r)
-						local y1 = math.max(-r_down+h, -r_down)
-						local y2 = math.min(r_up+h, r_up)
-						local x1 = math.max(-r+j, -r)
-						local x2 = math.min(r+j, r)
-						for z = z1,z2 do
-							for y = y1,y2 do
-								for x = x1,x2 do
-									tab[poshash{x=x, y=y, z=z}] = true
-								end
-							end
-						end
-						break
-					end
+			for y = rupdown, bot, -1 do
+				if get_a_tree(pos, tab, tr, x,y,z) then
+					break
 				end
 			end
 		end
@@ -226,7 +237,7 @@ function capitate_funcs.default(pos, tr, node_above, digger)
 	local trunks, n = {{{x=pos.x, y=pos.y+1, z=pos.z}, node_above}}, 2
 	local np = {x=pos.x, y=pos.y+2, z=pos.z}
 	local nd = get_node(np)
-	while table.icontains(trees, nd.name) and nd.param2 == 0 do
+	while table_contains(trees, nd.name) and nd.param2 == 0 do
 		trunks[n] = {vector.new(np), nd}
 		n = n+1
 		np.y = np.y+1
@@ -238,11 +249,11 @@ function capitate_funcs.default(pos, tr, node_above, digger)
 	local fruits = tr.fruits
 
 	-- abort if the tree lacks leaves/fruits
-	if not table.icontains(leaves, nd.name)
-	and not table.icontains(fruits, nd.name) then
+	if not table_contains(leaves, nd.name)
+	and not table_contains(fruits, nd.name) then
 		local leaf = get_node{x=np.x, y=np.y, z=np.z+1}.name
-		if not table.icontains(leaves, leaf)
-		and not table.icontains(fruits, leaf) then
+		if not table_contains(leaves, leaf)
+		and not table_contains(fruits, leaf) then
 			return
 		end
 	end
@@ -253,29 +264,27 @@ function capitate_funcs.default(pos, tr, node_above, digger)
 	end
 
 	-- get leaves, fruits and stem fruits
-	local range = tr.range
 	local head_ps
-	head_ps,n = find_next_trees(np, range, tr.range_up or range,
-		tr.range_down or range, trees, leaves, fruits)
+	head_ps,n = find_valid_head_ps(np, tr)
 	local leaves_toremove = {}
 	local fruits_toremove = {}
 	for i = 1,n do
 		local p = vector.add(np, head_ps[i])
 		local node = get_node(p)
 		local nodename = node.name
-		local is_trunk = table.icontains(trees, nodename)
+		local is_trunk = table_contains(trees, nodename)
 		if node.param2 ~= 0
 		or not is_trunk then
-			if table.icontains(leaves, nodename) then
+			if table_contains(leaves, nodename) then
 				leaves_toremove[#leaves_toremove+1] = {p, node}
-			elseif table.icontains(fruits, nodename) then
+			elseif table_contains(fruits, nodename) then
 				fruits_toremove[#fruits_toremove+1] = {p, node}
 			end
 		elseif is_trunk
 		and tr.trunk_fruit_vertical
-		and table.icontains(fruits, nodename)
-		and not table.icontains(trees, get_node{x=p.x, y=p.y+1, z=p.z})
-		and not table.icontains(trees, get_node{x=p.x, y=p.y-1, z=p.z}) then
+		and table_contains(fruits, nodename)
+		and not table_contains(trees, get_node{x=p.x, y=p.y+1, z=p.z})
+		and not table_contains(trees, get_node{x=p.x, y=p.y-1, z=p.z}) then
 			trunks[#trunks+1] = {p, node}
 		end
 	end
@@ -453,11 +462,11 @@ function capitate_funcs.moretrees(pos, tr, _, digger)
 			return false
 		end
 		local nam = get_node(pos).name
-		if table.icontains(trees, nam) then
+		if table_contains(trees, nam) then
 			num_trunks = num_trunks+1
-		elseif table.icontains(leaves, nam) then
+		elseif table_contains(leaves, nam) then
 			num_leaves = num_leaves+1
-		elseif not table.icontains(fruits, nam) then
+		elseif not table_contains(fruits, nam) then
 			return false
 		end
 		return true
@@ -483,7 +492,7 @@ function capitate_funcs.moretrees(pos, tr, _, digger)
 	for _,p in pairs(ps) do
 		local node = get_node(p)
 		local nodename = node.name
-		if table.icontains(leaves, nodename) then
+		if table_contains(leaves, nodename) then
 			remove_leaf(p, node, inv, digger)
 		else
 			destroy_node(p, node, digger)
@@ -497,11 +506,10 @@ end
 
 -- the function which is used for capitating the api
 local capitating = false	--necessary if minetest.node_dig is used
-function treecapitator.capitate_tree(pos, node, digger)
+function treecapitator.capitate_tree(pos, digger)
 	if capitating
 	or not digger
-	or digger:get_player_control().sneak
-	or not findtree(node) then
+	or digger:get_player_control().sneak then
 		return
 	end
 	local t1 = minetest.get_us_time()
@@ -509,7 +517,7 @@ function treecapitator.capitate_tree(pos, node, digger)
 	local node_above = get_node{x=pos.x, y=pos.y+1, z=pos.z}
 	for i = 1,#treecapitator.trees do
 		local tr = treecapitator.trees[i]
-		if table.icontains(tr.trees, node_above.name)
+		if table_contains(tr.trees, node_above.name)
 		and node_above.param2 < 4
 		and capitate_funcs[tr.type](pos, tr, node_above, digger) then
 			break

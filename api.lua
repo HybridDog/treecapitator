@@ -1,83 +1,48 @@
--- the table where the trees are stored at
+-- the table containing the tree definitions
 treecapitator.trees = {}
 
--- a table of trunks which couldn't be redefined
-treecapitator.rest_tree_nodes = {}
-
---adds trunks to rest_tree_nodes if they were overwritten by other mods
-local tmp_trees = {}
-local function test_overwritten(tree)
-	tmp_trees[#tmp_trees+1] = tree
-end
-
-minetest.after(0, function()
-	for _,tree in pairs(tmp_trees) do
-		if not minetest.registered_nodes[tree].after_dig_node then
-			minetest.log("error", "[treecapitator] Error: Overwriting "
-				.. tree .. " went wrong.")
-			treecapitator.rest_tree_nodes[#treecapitator.rest_tree_nodes+1] = tree
+-- test if trunk nodes were redefined
+local after_dig_nodes = {}
+minetest.after(2, function()
+	for i = 1,#after_dig_nodes do
+		local nodename = after_dig_nodes[i]
+		if not minetest.registered_nodes[nodename].after_dig_node then
+			error(nodename .. " didn't keep after_dig_node.")
 		end
 	end
-	tmp_trees = nil
+	after_dig_nodes = nil
 end)
 
--- the function to overide trunks
-local override
-if minetest.override_item then
-	function override(name)
-		minetest.override_item(name, {
-			after_dig_node = function(pos, _, _, digger)
-				treecapitator.capitate_tree(pos, 0, digger)
-			end
-		})
-	end
-else
-	minetest.log("deprecated", "minetest.override_item isn't supported")
-	table.copy = table.copy or function(tab)
-		local tab2 = {}
-		for n,i in pairs(tab) do
-			tab2[n] = i
-		end
-		return tab2
-	end
-	function override(name, data)
-		data = table.copy(data)
-		data.after_dig_node = function(pos, _, _, digger)
-			treecapitator.capitate_tree(pos, 0, digger)
-		end
-		minetest.register_node(":"..name, data)
-	end
+-- wrapping is necessary, someone may overwrite treecapitator.capitate_tree
+local function after_dig_wrap(pos, _,_, digger)
+	treecapitator.capitate_tree(pos, digger)
 end
 
---the function to register trees to become capitated
-local num = 1
+-- For the usage of this function, see trees.lua.
 function treecapitator.register_tree(tab)
 	for name,value in pairs(treecapitator.default_tree) do
-		tab[name] = tab[name] or value	--replaces not defined stuff
-	end
-	treecapitator.trees[num] = tab
-	num = num+1
-
-	for _,tree in pairs(tab.trees) do
-		local data = minetest.registered_nodes[tree]
-		if not data then
-			minetest.log("info", "[treecapitator] Info: "
-				.. tree .. " isn't registered yet.")
-			treecapitator.rest_tree_nodes[#treecapitator.rest_tree_nodes+1] = tree
-		else
-			if data.after_dig_node then
-				minetest.log("info", "[treecapitator] Info: " .. tree
-					.. " already has an after_dig_node.")
-				treecapitator.rest_tree_nodes[#treecapitator.rest_tree_nodes+1] = tree
-			else
-				override(tree, data)
-				test_overwritten(tree)
-			end
+		if tab[name] == nil then
+			tab[name] = value	--replaces not defined stuff
 		end
 	end
-end
+	treecapitator.trees[#treecapitator.trees+1] = tab
 
---use register_on_dignode if trunks are left, this doesnt work at this time l think…
-if treecapitator.rest_tree_nodes[1] then
-	minetest.register_on_dignode(treecapitator.capitate_tree)
+	for i = 1,#tab.trees do
+		local nodename = tab.trees[i]
+		local data = minetest.registered_nodes[nodename]
+		if not data then
+			error(nodename .. " has to be registered before calling " ..
+				"treecapitator.register_tree.")
+		end
+		local func = after_dig_wrap
+		local prev_after_dig = data.after_dig_node
+		if prev_after_dig then
+			func = function(pos, oldnode, oldmetadata, digger)
+				prev_after_dig(pos, oldnode, oldmetadata, digger)
+				treecapitator.capitate_tree(pos, digger)
+			end
+		end
+		minetest.override_item(nodename, {after_dig_node = func})
+		after_dig_nodes[#after_dig_nodes+1] = nodename
+	end
 end
