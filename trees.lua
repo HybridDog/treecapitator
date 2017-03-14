@@ -190,7 +190,13 @@ and minetest.get_modpath("moretrees") then
 		trees = {"moretrees:rubber_tree_trunk",
 			"moretrees:rubber_tree_trunk_empty"},
 		leaves = {"moretrees:rubber_tree_leaves"},
+		fruits = {"moretrees:rubber_tree_trunk",
+			"moretrees:rubber_tree_trunk_empty"},
+		trunk_fruit_vertical = true,
+		stem_type = "2x2",
 		range = 8,
+		range_down = 1,
+		range_up = 8,
 	})
 --[[
 	treecapitator.register_tree({

@@ -248,13 +248,66 @@ local function get_stem(trunktop_ps, trunks, trees)
 	end
 end
 
+-- part of 2x2 stem searching
+local function here_2x2_stem(p, trees)
+	local ps = {}
+	for x = 0,1 do
+		for z = 0,1 do
+			local p = {x=p.x+x, y=p.y, z=p.z+z}
+			-- air test is too simple (makeshift solution)
+			if get_node(p).name ~= "air" then
+				return
+			end
+			p.y = p.y+1
+			if not is_trunk_of_tree(trees, get_node(p)) then
+				return
+			end
+			ps[#ps+1] = p
+		end
+	end
+	return ps
+end
+
+-- gives stem positions of a healthy 2x2 tree
+local function find_neat_2x2(pos, trees)
+	for x = -1,0 do
+		for z = -1,0 do
+			local p = {x=pos.x+x, y=pos.y, z=pos.z+z}
+			local ps = here_2x2_stem(p, trees)
+			if ps then
+				return ps
+			end
+		end
+	end
+	-- nothing found
+end
+
 -- returns the lowest trunk node positions
 local function get_stem_ps(pos, tr)
 	if tr.stem_type == "2x2" then
 		-- TODO
+		return find_neat_2x2(pos, tr.trees)
 	else
 		-- 1x1 stem
 		return {{x=pos.x, y=pos.y+1, z=pos.z}}
+	end
+end
+
+-- gets the middle position of the tree head
+-- TODO: neighbour detect needs x and z range increments for positions to avoid
+local function get_head_center(trunktop_ps, stem_type)
+	if stem_type == "2x2" then
+		-- return the highest position
+		local pos = trunktop_ps[1]
+		for i = 2,#trunktop_ps do
+			local p = trunktop_ps[i]
+			if p.y > pos.y then
+				pos = p
+			end
+		end
+		return pos
+	else
+		return trunktop_ps[1]
 	end
 end
 
@@ -264,18 +317,19 @@ function capitate_funcs.default(pos, tr, _, digger)
 	-- get the stem trunks
 	local trunks = {}
 	local trunktop_ps = get_stem_ps(pos, tr)
+	if not trunktop_ps then
+		return
+	end
 	get_stem(trunktop_ps, trunks, tr.trees)
-
-	-- get the head center position (temporary way)
-	local hcp = trunktop_ps[1]
 
 	local leaves = tr.leaves
 	local fruits = tr.fruits
+	local hcp = get_head_center(trunktop_ps, tr.stem_type)
 
 	-- abort if the tree lacks leaves/fruits
-	local hcn = get_node(hcp)
-	if not leaves ^ hcn.name
-	and not fruits ^ hcn.name then
+	local ln = get_node{x=hcp.x, y=hcp.y+1, z=hcp.z}
+	if not leaves ^ ln.name
+	and not fruits ^ ln.name then
 		local leaf = get_node{x=hcp.x, y=hcp.y, z=hcp.z+1}.name
 		if not leaves ^ leaf
 		and not fruits ^ leaf then

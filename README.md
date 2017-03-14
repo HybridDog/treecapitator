@@ -27,3 +27,4 @@ TODO:
 * improve moretrees support (see issue )
 * move nyanland tree to my nyanland mod
 * support big acacia trees
+* neighbour detection x and z increments for stem types, hone 2x2 stem support
