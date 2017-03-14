@@ -231,29 +231,52 @@ local function find_valid_head_ps(pos, tr)
 	return tab2, n-1
 end
 
-function capitate_funcs.default(pos, tr, node_above, digger)
+-- adds the stem to the trunks
+local function get_stem(trunktop_ps, trunks, trees)
+	for i = 1,#trunktop_ps do
+		local pos = trunktop_ps[i]
+		local node = get_node(pos)
+		while is_trunk_of_tree(trees, node) do
+			trunks[#trunks+1] = {pos, node}
+			pos = {x=pos.x, y=pos.y+1, z=pos.z}
+			node = get_node(pos)
+		end
+
+		-- renew trunk top position
+		pos.y = pos.y-1
+		trunktop_ps[i] = pos
+	end
+end
+
+-- returns the lowest trunk node positions
+local function get_stem_ps(pos, tr)
+	if tr.stem_type == "2x2" then
+		-- TODO
+	else
+		-- 1x1 stem
+		return {{x=pos.x, y=pos.y+1, z=pos.z}}
+	end
+end
+
+function capitate_funcs.default(pos, tr, _, digger)
 	local trees = tr.trees
 
 	-- get the stem trunks
-	local trunks, n = {{{x=pos.x, y=pos.y+1, z=pos.z}, node_above}}, 2
-	local np = {x=pos.x, y=pos.y+2, z=pos.z}
-	local nd = get_node(np)
-	while nd.param2 == 0
-	and trees ^ nd.name do
-		trunks[n] = {vector.new(np), nd}
-		n = n+1
-		np.y = np.y+1
-		nd = get_node(np)
-	end
-	np.y = np.y-1
+	local trunks = {}
+	local trunktop_ps = get_stem_ps(pos, tr)
+	get_stem(trunktop_ps, trunks, tr.trees)
+
+	-- get the head center position (temporary way)
+	local hcp = trunktop_ps[1]
 
 	local leaves = tr.leaves
 	local fruits = tr.fruits
 
 	-- abort if the tree lacks leaves/fruits
-	if not leaves ^ nd.name
-	and not fruits ^ nd.name then
-		local leaf = get_node{x=np.x, y=np.y, z=np.z+1}.name
+	local hcn = get_node(hcp)
+	if not leaves ^ hcn.name
+	and not fruits ^ hcn.name then
+		local leaf = get_node{x=hcp.x, y=hcp.y, z=hcp.z+1}.name
 		if not leaves ^ leaf
 		and not fruits ^ leaf then
 			return
@@ -267,11 +290,11 @@ function capitate_funcs.default(pos, tr, node_above, digger)
 
 	-- get leaves, fruits and stem fruits
 	local head_ps
-	head_ps,n = find_valid_head_ps(np, tr)
+	head_ps,n = find_valid_head_ps(hcp, tr)
 	local leaves_toremove = {}
 	local fruits_toremove = {}
 	for i = 1,n do
-		local p = vector.add(np, head_ps[i])
+		local p = vector.add(hcp, head_ps[i])
 		local node = get_node(p)
 		local nodename = node.name
 		local is_trunk = trees ^ nodename
