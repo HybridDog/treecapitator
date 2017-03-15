@@ -40,9 +40,9 @@ end
 
 local poshash = minetest.hash_node_position
 
---~ local function hash2(x, y)
-	--~ return y * 0x10000 + x
---~ end
+local function hash2(x, y)
+	return y * 0x10000 + x
+end
 
 -- don't use minetest.get_node more times for the same position (caching)
 local known_nodes
@@ -165,6 +165,11 @@ local function get_a_tree(pos, tab, tr, i,h,j)
 	local r_up = tr.range_up or r
 	local r_down = tr.range_down or r
 
+	-- reduce x and z avoidance range for 2x2 neighbour trees
+	if tr.stem_type == "2x2" then
+		r = r-1
+	end
+
 	-- tag places which should not be removed
 	local z1 = math.max(-r + i, -r)
 	local z2 = math.min(r + i, r)
@@ -185,7 +190,14 @@ local function get_a_tree(pos, tab, tr, i,h,j)
 end
 
 --returns positions for leaves allowed to be dug
-local function find_valid_head_ps(pos, tr)
+local function find_valid_head_ps(pos, trunktop_ps, tr)
+	-- exclude the stem nodes
+	local before_stems = {}
+	for i = 1,#trunktop_ps do
+		local p = vector.subtract(trunktop_ps[i], pos)
+		before_stems[hash2(p.x, p.z)] = p.y+1
+	end
+
 	local r = tr.range
 	local r_up = tr.range_up or r
 	local r_down = tr.range_down or r
@@ -196,12 +208,7 @@ local function find_valid_head_ps(pos, tr)
 	local rupdown = r_up + r_down
 	for z = -rx2, rx2 do
 		for x = -rx2, rx2 do
-			local bot = -rupdown
-			if z == 0
-			and x == 0 then
-				-- only detect neighbours
-				bot = 1
-			end
+			local bot = before_stems[hash2(x, z)] or -rupdown
 			for y = rupdown, bot, -1 do
 				if get_a_tree(pos, tab, tr, x,y,z) then
 					break
@@ -213,12 +220,7 @@ local function find_valid_head_ps(pos, tr)
 	local tab2,n = {},1
 	for z = -r,r do
 		for x = -r,r do
-			local bot = -r_down
-			if x == 0
-			and z == 0 then
-				-- avoid adding the stem
-				bot = 1
-			end
+			local bot = before_stems[hash2(x, z)] or -r_down
 			for y = bot,r_up do
 				local p = {x=x, y=y, z=z}
 				if not tab[poshash(p)] then
@@ -294,7 +296,6 @@ local function get_stem_ps(pos, tr)
 end
 
 -- gets the middle position of the tree head
--- TODO: neighbour detect needs x and z range increments for positions to avoid
 local function get_head_center(trunktop_ps, stem_type)
 	if stem_type == "2x2" then
 		-- return the highest position
@@ -344,7 +345,7 @@ function capitate_funcs.default(pos, tr, _, digger)
 
 	-- get leaves, fruits and stem fruits
 	local head_ps
-	head_ps,n = find_valid_head_ps(hcp, tr)
+	head_ps,n = find_valid_head_ps(hcp, trunktop_ps, tr)
 	local leaves_toremove = {}
 	local fruits_toremove = {}
 	for i = 1,n do
