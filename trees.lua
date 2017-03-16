@@ -137,18 +137,23 @@ and minetest.get_modpath("moretrees") then
 		fruits = {"default:apple"}
 	})
 
-	treecapitator.register_tree({
+	treecapitator.register_tree{
 		trees = {"moretrees:beech_trunk"},
 		leaves = {"moretrees:beech_leaves"},
-		range = 8,
-	})
+		range = 4,
+		range_down = 2,
+		range_up = 3,
+		fruits = {"moretrees:beech_trunk"},
+		trunk_fruit_vertical = true
+	}
+
 	treecapitator.register_tree({
 		trees = {"moretrees:birch_trunk"},
 		leaves = {"moretrees:birch_leaves"},
 		range = 8,
 	})
 
-	treecapitator.register_tree({
+	treecapitator.register_tree{
 		trees = {"moretrees:fir_trunk"},
 		leaves = {"moretrees:fir_leaves", "moretrees:fir_leaves_bright"},
 		range_up = 2,
@@ -156,7 +161,7 @@ and minetest.get_modpath("moretrees") then
 		range = 7,
 		fruits = {"moretrees:fir_cone", "moretrees:fir_trunk"},
 		trunk_fruit_vertical = true
-	})
+	}
 
 	treecapitator.register_tree({
 		trees = {"moretrees:jungletree_trunk"},
@@ -179,14 +184,18 @@ and minetest.get_modpath("moretrees") then
 		fruits = {"moretrees:coconut"}
 	})
 
+	-- needs special type
 	treecapitator.register_tree({
 		trees = {"moretrees:cedar_trunk"},
 		leaves = {"moretrees:cedar_leaves"},
 		range = 8,
-		fruits = {"moretrees:cedar_cone"}
+		range_up = 1,
+		range_down = 19,
+		trunk_fruit_vertical = true,
+		fruits = {"moretrees:cedar_cone", "moretrees:cedar_trunk"}
 	})
 
-	treecapitator.register_tree({
+	treecapitator.register_tree{
 		trees = {"moretrees:rubber_tree_trunk",
 			"moretrees:rubber_tree_trunk_empty"},
 		leaves = {"moretrees:rubber_tree_leaves"},
@@ -197,7 +206,7 @@ and minetest.get_modpath("moretrees") then
 		range = 8,
 		range_down = 1,
 		range_up = 8,
-	})
+	}
 --[[
 	treecapitator.register_tree({
 		trees = {"moretrees:sequoia_trunk"},
