@@ -7,6 +7,7 @@ treecapitator.register_tree({
 	range_down = <range>,
 	fruits = {<node1>, <node2>, ...},
 	trunk_fruit_vertical = <some_boolean>,
+	stem_type = <some_string>,
 	type = "default",
 })
 
@@ -19,6 +20,8 @@ range_down: like range_up but downwards
 fruits:	similar to leaves but without the drop_leaf setting condition
 trunk_fruit_vertical: set this to true to make a trunk node, if it's in trees
 	and fruits, get removed even if it isn't rotated (param2 = 0)
+stem_type: set to "2x2" for a thick tree, "+" for a even thicker one TODO,
+	anything else is interpreted as single stem
 
 
 treecapitator.register_tree({
@@ -87,16 +90,6 @@ treecapitator.register_tree({
 	leaves = {"default:aspen_leaves"},
 	range = 4,
 })
-
--- this should be moved to nyanland
-if minetest.get_modpath("nyanland") then
-	treecapitator.register_tree({
-		trees = {"nyanland:mesetree", "nyanland:healstone"},
-		leaves = {"nyanland:meseleaves"},
-		range = 2,
-		fruits = {"default:apple"}
-	})
-end
 
 if minetest.get_modpath("farming_plus") then
 	treecapitator.register_tree({
