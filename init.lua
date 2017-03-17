@@ -250,7 +250,7 @@ local function get_stem(trunktop_ps, trunks, trees)
 	end
 end
 
--- part of 2x2 stem searching
+-- part of 2x2 healthy stem searching
 local function here_2x2_stem(p, trees)
 	local ps = {}
 	for x = 0,1 do
@@ -274,8 +274,7 @@ end
 local function find_neat_2x2(pos, trees)
 	for x = -1,0 do
 		for z = -1,0 do
-			local p = {x=pos.x+x, y=pos.y, z=pos.z+z}
-			local ps = here_2x2_stem(p, trees)
+			local ps = here_2x2_stem({x=pos.x+x, y=pos.y, z=pos.z+z}, trees)
 			if ps then
 				return ps
 			end
@@ -284,11 +283,58 @@ local function find_neat_2x2(pos, trees)
 	-- nothing found
 end
 
+-- part of 2x2 incomplete stem searching
+local function part_2x2_stem(p, trees)
+	local ps = {}
+	for x = 0,1 do
+		for z = 0,1 do
+			local p = {x=p.x+x, y=p.y+1, z=p.z+z}
+			if is_trunk_of_tree(trees, get_node(p)) then
+				p.y = p.y-1
+				local node = get_node(p)
+				if is_trunk_of_tree(trees, node) then
+					-- 2x2 stem wasn't chopped enough
+					return {}
+				end
+				-- air test is too simple (makeshift solution)
+				if node.name == "air" then
+					p.y = p.y+1
+					ps[#ps+1] = p
+				end
+			end
+		end
+	end
+	-- #ps ∈ [3]
+	return ps
+end
+
+-- gives stem positions of a incomplete 2x2
+local function find_incomplete_2x2(pos, trees)
+	local ps
+	local stemcount = 0
+	for x = -1,0 do
+		for z = -1,0 do
+			local p = {x=pos.x+x, y=pos.y, z=pos.z+z}
+			local cps = part_2x2_stem(p, trees)
+			local cnt = #cps
+			if cnt == 0 then
+				-- player needs to chop more
+				return
+			end
+			if stemcount < cnt then
+				stemcount = #cps
+				ps = cps
+			end
+		end
+	end
+	return ps
+end
+
 -- returns the lowest trunk node positions
 local function get_stem_ps(pos, tr)
 	if tr.stem_type == "2x2" then
-		-- TODO
 		return find_neat_2x2(pos, tr.trees)
+			or find_incomplete_2x2(pos, tr.trees)
 	else
 		-- 1x1 stem
 		return {{x=pos.x, y=pos.y+1, z=pos.z}}
