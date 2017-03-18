@@ -26,4 +26,4 @@ TODO:
 * use range_up and range_down for other trees too for greater precision in neighbour detection
 * improve moretrees support (see issue )
 * support big acacia trees
-* find out why spruce neighbour detection doesn't work (maybe it detects the tree to capitate as neighbour)
+* find out why spruce and birch neighbour detection doesn't work (maybe it detects the tree to capitate as neighbour)

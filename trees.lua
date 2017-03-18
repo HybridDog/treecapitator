@@ -146,11 +146,17 @@ and minetest.get_modpath("moretrees") then
 		trunk_fruit_vertical = true
 	}
 
-	treecapitator.register_tree({
+	treecapitator.register_tree{
 		trees = {"moretrees:birch_trunk"},
 		leaves = {"moretrees:birch_leaves"},
-		range = 8,
-	})
+		fruits = {"moretrees:birch_trunk"},
+		trunk_fruit_vertical = true,
+		cutting_leaves = true,
+		stem_height_min = 4,
+		range = 6,
+		range_down = 11,
+		range_up = 4,
+	}
 
 	treecapitator.register_tree{
 		trees = {"moretrees:fir_trunk"},
