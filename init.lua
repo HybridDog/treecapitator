@@ -165,9 +165,11 @@ local function get_a_tree(pos, tab, tr, i,h,j)
 	local r_up = tr.range_up or r
 	local r_down = tr.range_down or r
 
-	-- reduce x and z avoidance range for 2x2 neighbour trees
+	-- reduce x and z avoidance range for thick stem neighbour trees
 	if tr.stem_type == "2x2" then
 		r = r-1
+	elseif tr.stem_type == "+" then
+		r = r - 2
 	end
 
 	-- tag places which should not be removed
@@ -250,57 +252,55 @@ local function get_stem(trunktop_ps, trunks, trees)
 	end
 end
 
--- part of 2x2 healthy stem searching
-local function here_2x2_stem(p, trees)
+-- part of healthy stem searching
+local function here_neat_stemps(p, tr)
 	local ps = {}
-	for x = 0,1 do
-		for z = 0,1 do
-			local p = {x=p.x+x, y=p.y, z=p.z+z}
-			-- air test is too simple (makeshift solution)
-			if get_node(p).name ~= "air" then
-				return
-			end
-			p.y = p.y+1
-			if not is_trunk_of_tree(trees, get_node(p)) then
-				return
-			end
-			ps[#ps+1] = p
+	for i = 1,#tr.stem_offsets do
+		local o = tr.stem_offsets[i]
+		local p = {x = p.x + o[1], y = p.y, z = p.z + o[2]}
+		-- air test is too simple (makeshift solution)
+		if get_node(p).name ~= "air" then
+			return
 		end
+		p.y = p.y+1
+		if not is_trunk_of_tree(tr.trees, get_node(p)) then
+			return
+		end
+		ps[#ps+1] = p
 	end
 	return ps
 end
 
--- gives stem positions of a healthy 2x2 tree
-local function find_neat_2x2(pos, trees)
-	for x = -1,0 do
-		for z = -1,0 do
-			local ps = here_2x2_stem({x=pos.x+x, y=pos.y, z=pos.z+z}, trees)
-			if ps then
-				return ps
-			end
+-- gives stem positions of a healthy tree
+local function find_neat_stemps(pos, tr)
+	for i = 1,#tr.stem_offsets do
+		local o = tr.stem_offsets[i]
+		local p = {x = pos.x - o[1], y = pos.y, z = pos.z - o[2]}
+		local ps = here_neat_stemps(p, tr)
+		if ps then
+			return ps
 		end
 	end
 	-- nothing found
 end
 
--- part of 2x2 incomplete stem searching
-local function part_2x2_stem(p, trees)
+-- part of incomplete stem searching
+local function here_incomplete_stemps(p, tr)
 	local ps = {}
-	for x = 0,1 do
-		for z = 0,1 do
-			local p = {x=p.x+x, y=p.y+1, z=p.z+z}
-			if is_trunk_of_tree(trees, get_node(p)) then
-				p.y = p.y-1
-				local node = get_node(p)
-				if is_trunk_of_tree(trees, node) then
-					-- 2x2 stem wasn't chopped enough
-					return {}
-				end
-				-- air test is too simple (makeshift solution)
-				if node.name == "air" then
-					p.y = p.y+1
-					ps[#ps+1] = p
-				end
+	for i = 1,#tr.stem_offsets do
+		local o = tr.stem_offsets[i]
+		local p = {x = p.x + o[1], y = p.y+1, z = p.z + o[2]}
+		if is_trunk_of_tree(tr.trees, get_node(p)) then
+			p.y = p.y-1
+			local node = get_node(p)
+			if is_trunk_of_tree(tr.trees, node) then
+				-- 2x2 stem wasn't chopped enough
+				return {}
+			end
+			-- air test is too simple (makeshift solution)
+			if node.name == "air" then
+				p.y = p.y+1
+				ps[#ps+1] = p
 			end
 		end
 	end
@@ -308,23 +308,22 @@ local function part_2x2_stem(p, trees)
 	return ps
 end
 
--- gives stem positions of a incomplete 2x2
-local function find_incomplete_2x2(pos, trees)
+-- gives stem positions of an eroded tree
+local function find_incomplete_stemps(pos, tr)
 	local ps
 	local stemcount = 0
-	for x = -1,0 do
-		for z = -1,0 do
-			local p = {x=pos.x+x, y=pos.y, z=pos.z+z}
-			local cps = part_2x2_stem(p, trees)
-			local cnt = #cps
-			if cnt == 0 then
-				-- player needs to chop more
-				return
-			end
-			if stemcount < cnt then
-				stemcount = #cps
-				ps = cps
-			end
+	for i = 1,#tr.stem_offsets do
+		local o = tr.stem_offsets[i]
+		local p = {x = pos.x - o[1], y = pos.y, z = pos.z - o[2]}
+		local cps = here_incomplete_stemps(p, tr)
+		local cnt = #cps
+		if cnt == 0 then
+			-- player needs to chop more
+			return
+		end
+		if stemcount < cnt then
+			stemcount = #cps
+			ps = cps
 		end
 	end
 	return ps
@@ -332,13 +331,12 @@ end
 
 -- returns the lowest trunk node positions
 local function get_stem_ps(pos, tr)
-	if tr.stem_type == "2x2" then
-		return find_neat_2x2(pos, tr.trees)
-			or find_incomplete_2x2(pos, tr.trees)
-	else
+	if not tr.stem_type then
 		-- 1x1 stem
 		return {{x=pos.x, y=pos.y+1, z=pos.z}}
 	end
+	return find_neat_stemps(pos, tr)
+		or find_incomplete_stemps(pos, tr)
 end
 
 -- gets the middle position of the tree head
@@ -353,6 +351,13 @@ local function get_head_center(trunktop_ps, stem_type)
 			end
 		end
 		return pos
+	elseif stem_type == "+" then
+		-- return the middle position
+		local mid = vector.new()
+		for i = 1,#trunktop_ps do
+			mid = vector.add(mid, trunktop_ps[i])
+		end
+		return vector.round(vector.divide(mid, #trunktop_ps))
 	else
 		return trunktop_ps[1]
 	end
@@ -439,6 +444,19 @@ treecapitator.after_register.default = function(tr)
 	setmetatable(tr.fruits, mt_default)
 	tr.range_up = tr.range_up or tr.range
 	tr.range_down = tr.range_down or tr.range
+	if tr.stem_type == "2x2" then
+		tr.stem_offsets = {
+			{0,0}, {1,0},
+			{0,1}, {1,1},
+		}
+	elseif tr.stem_type == "+" then
+		tr.stem_offsets = {
+			{0,0},
+				{0,1},
+			{-1,0},	{1,0},
+				{0,-1},
+		}
+	end
 end
 
 
