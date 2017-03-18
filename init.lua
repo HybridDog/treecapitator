@@ -10,6 +10,7 @@ treecapitator = {
 	play_sound = true,
 	moretrees_support = false,
 	delay = 0,
+	stem_height_min = 3,
 	default_tree = {	--replaces not defined stuff (see below)
 		trees = {"default:tree"},
 		leaves = {"default:leaves"},
@@ -143,10 +144,9 @@ end
 local function get_a_tree(pos, tab, tr, i,h,j)
 	local p = {x=pos.x+j, y=pos.y+h, z=pos.z+i}
 
-	-- tests if a trunk is at the current pos and below it
+	-- tests if a trunk is at the current pos
 	local nd = get_node(p)
-	if not is_trunk_of_tree(tr.trees, nd)
-	or not is_trunk_of_tree(tr.trees, get_node{x=p.x, y=p.y-1, z=p.z}) then
+	if not is_trunk_of_tree(tr.trees, nd) then
 		return false
 	end
 
@@ -161,13 +161,22 @@ local function get_a_tree(pos, tab, tr, i,h,j)
 		end
 	end
 
+	-- search for the requisite amount of stem trunk nodes
+	for _ = 1, tr.stem_height_min-1 do
+		p.y = p.y-1
+		if not is_trunk_of_tree(tr.trees, get_node(p)) then
+			return false
+		end
+	end
+	p.y = p.y + tr.stem_height_min-1
+
 	local r = tr.range
 	local r_up = tr.range_up or r
 	local r_down = tr.range_down or r
 
 	-- reduce x and z avoidance range for thick stem neighbour trees
 	if tr.stem_type == "2x2" then
-		r = r-1
+		r = r - 1
 	elseif tr.stem_type == "+" then
 		r = r - 2
 	end
@@ -191,7 +200,7 @@ local function get_a_tree(pos, tab, tr, i,h,j)
 	return true
 end
 
---returns positions for leaves allowed to be dug
+-- returns positions for leaves allowed to be dug
 local function find_valid_head_ps(pos, trunktop_ps, tr)
 	-- exclude the stem nodes
 	local before_stems = {}
@@ -444,6 +453,8 @@ treecapitator.after_register.default = function(tr)
 	setmetatable(tr.fruits, mt_default)
 	tr.range_up = tr.range_up or tr.range
 	tr.range_down = tr.range_down or tr.range
+	tr.stem_height_min = tr.stem_height_min or treecapitator.stem_height_min
+
 	if tr.stem_type == "2x2" then
 		tr.stem_offsets = {
 			{0,0}, {1,0},

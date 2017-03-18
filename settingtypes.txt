@@ -12,3 +12,9 @@ treecapitator.moretrees_support (support moretrees) bool false
 
 #    lets trees become capitated <delay> seconds later, only works if it's > 0
 treecapitator.delay (delay) float 0 0
+
+#    considers trunks as neighbour trees if there're >= stem_height_min trunks
+#    if set too low, vertical trunk fruits may be recognized as neighbour tree
+#    if set too high, short stemmed neighbour trees are not recognited
+#    stem_height_min can explicitly be overridden in tree definitions
+treecapitator.stem_height_min (minimum neighbour stem height) int 3 2

@@ -8,6 +8,7 @@ treecapitator.register_tree({
 	fruits = {<node1>, <node2>, ...},
 	trunk_fruit_vertical = <some_boolean>,
 	stem_type = <some_string>,
+	stem_height_min = <height>,
 	type = "default",
 })
 
@@ -20,8 +21,10 @@ range_down: like range_up but downwards
 fruits:	similar to leaves but without the drop_leaf setting condition
 trunk_fruit_vertical: set this to true to make a trunk node, if it's in trees
 	and fruits, get removed even if it isn't rotated (param2 = 0)
-stem_type: set to "2x2" for a thick tree, "+" for a even thicker one TODO,
-	anything else is interpreted as single stem
+stem_type: set to "2x2" for a thick tree, "+" for a even thicker one,
+	anything else is currently interpreted as single stem
+stem_height_min: indicates how much trunk nodes a neighbour tree stem have to
+	consist of
 
 
 treecapitator.register_tree({
