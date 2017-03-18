@@ -201,7 +201,7 @@ local function get_a_tree(pos, tab, tr, i,h,j)
 end
 
 -- returns positions for leaves allowed to be dug
-local function find_valid_head_ps(pos, trunktop_ps, tr)
+local function find_valid_head_ps(pos, head_ps, trunktop_ps, tr)
 	-- exclude the stem nodes
 	local before_stems = {}
 	for i = 1,#trunktop_ps do
@@ -228,33 +228,66 @@ local function find_valid_head_ps(pos, trunktop_ps, tr)
 		end
 	end
 	-- now, get the head positions without the neighbouring trees
-	local tab2,n = {},1
+	local n = #head_ps
 	for z = -r,r do
 		for x = -r,r do
 			local bot = before_stems[hash2(x, z)] or -r_down
 			for y = bot,r_up do
 				local p = {x=x, y=y, z=z}
 				if not tab[poshash(p)] then
-					tab2[n] = p
 					n = n+1
+					head_ps[n] = vector.add(pos, p)
 				end
 			end
 		end
 	end
-	return tab2, n-1
+	return n
 end
 
 -- adds the stem to the trunks
-local function get_stem(trunktop_ps, trunks, trees)
+local function get_stem(trunktop_ps, trunks, tr, head_ps)
+	local trees = tr.trees
+	if not tr.cutting_leaves then
+		for i = 1,#trunktop_ps do
+			local pos = trunktop_ps[i]
+			local node = get_node(pos)
+			while is_trunk_of_tree(trees, node) do
+				trunks[#trunks+1] = {pos, node}
+				pos = {x=pos.x, y=pos.y+1, z=pos.z}
+				node = get_node(pos)
+			end
+
+			-- renew trunk top position
+			pos.y = pos.y-1
+			trunktop_ps[i] = pos
+		end
+		return
+	end
 	for i = 1,#trunktop_ps do
 		local pos = trunktop_ps[i]
 		local node = get_node(pos)
-		while is_trunk_of_tree(trees, node) do
-			trunks[#trunks+1] = {pos, node}
-			pos = {x=pos.x, y=pos.y+1, z=pos.z}
-			node = get_node(pos)
-		end
+		while true do
+			while is_trunk_of_tree(trees, node) do
+				trunks[#trunks+1] = {pos, node}
+				pos = {x=pos.x, y=pos.y+1, z=pos.z}
+				node = get_node(pos)
+			end
+			local p_nxtt = {x=pos.x, y=pos.y+1, z=pos.z}
+			local n_nxtt = get_node(p_nxtt)
+			if not is_trunk_of_tree(trees, n_nxtt)
+			or not is_trunk_of_tree(trees, get_node{
+				x = pos.x,
+				y = pos.y+2,
+				z = pos.z
+			}) then
+				break
+			end
+			-- add leaves or whatsoever to the head positions
+			head_ps[#head_ps+1] = pos
 
+			pos = p_nxtt
+			node = n_nxtt
+		end
 		-- renew trunk top position
 		pos.y = pos.y-1
 		trunktop_ps[i] = pos
@@ -303,7 +336,7 @@ local function here_incomplete_stemps(p, tr)
 			p.y = p.y-1
 			local node = get_node(p)
 			if is_trunk_of_tree(tr.trees, node) then
-				-- 2x2 stem wasn't chopped enough
+				-- stem wasn't chopped enough
 				return {}
 			end
 			-- air test is too simple (makeshift solution)
@@ -381,7 +414,8 @@ function capitate_funcs.default(pos, tr, _, digger)
 	if not trunktop_ps then
 		return
 	end
-	get_stem(trunktop_ps, trunks, tr.trees)
+	local head_ps = {}
+	get_stem(trunktop_ps, trunks, tr, head_ps)
 
 	local leaves = tr.leaves
 	local fruits = tr.fruits
@@ -398,18 +432,17 @@ function capitate_funcs.default(pos, tr, _, digger)
 		end
 	end
 
-	-- play the sound, then dig the stem
+	-- something becomes dug, thus play the sound now
 	if treecapitator.play_sound then
 		minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
 	end
 
 	-- get leaves, fruits and stem fruits
-	local head_ps
-	head_ps,n = find_valid_head_ps(hcp, trunktop_ps, tr)
+	local n = find_valid_head_ps(hcp, head_ps, trunktop_ps, tr)
 	local leaves_toremove = {}
 	local fruits_toremove = {}
 	for i = 1,n do
-		local p = vector.add(hcp, head_ps[i])
+		local p = head_ps[i]
 		local node = get_node(p)
 		local nodename = node.name
 		local is_trunk = trees ^ nodename
