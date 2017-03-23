@@ -125,7 +125,7 @@ and minetest.get_modpath("moretrees") then
 		trees = {"moretrees:poplar_trunk"},
 		leaves = {"moretrees:poplar_leaves"},
 		range_up = 4,
-		range_down = 15,
+		range_down = 17,
 		range = 2,
 	}
 
@@ -189,13 +189,6 @@ and minetest.get_modpath("moretrees") then
 		range_down = 1,
 	}
 
-	treecapitator.register_tree({
-		trees = {"moretrees:palm_trunk"},
-		leaves = {"moretrees:palm_leaves"},
-		range = 8,
-		fruits = {"moretrees:coconut"}
-	})
-
 	-- needs special type
 	treecapitator.register_tree({
 		trees = {"moretrees:cedar_trunk"},
@@ -256,6 +249,17 @@ and minetest.get_modpath("moretrees") then
 		range_down = 6,
 	}
 
+
+	treecapitator.register_tree{
+		trees = {"moretrees:palm_trunk"},
+		trunk_top = "moretrees:palm_fruit_trunk",
+		leaves = "moretrees:palm_leaves",
+		fruit = "moretrees:coconut",
+		range = 10,
+		range_up = 7,
+		range_down = 4,
+		type = "palm",
+	}
 
 	--~ treecapitator.register_tree({
 		--~ trees = {"moretrees:sequoia_trunk"},

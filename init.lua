@@ -86,7 +86,7 @@ if treecapitator.drop_items then
 	end
 else
 	if minetest.setting_getbool"creative_mode" then
-		function drop_leaf(pos, item, inv)
+		function drop_leaf(_, item, inv)
 			if inv
 			and inv:room_for_item("main", item)
 			and not inv:contains_item("main", item) then
@@ -506,6 +506,7 @@ function capitate_funcs.acacia(pos, tr, node_above, digger)
 	end
 	np.y = np.y-1
 
+	local inv = digger:get_inventory()
 	for z = -1,1,2 do
 		for x = -1,1,2 do
 			-- add the other trunks to tab
@@ -551,7 +552,6 @@ function capitate_funcs.acacia(pos, tr, node_above, digger)
 			end
 
 			-- remove leaves
-			local inv = digger:get_inventory()
 			p.y = p.y+1
 			local i = 0
 			for z = -4,4 do
@@ -576,6 +576,170 @@ function capitate_funcs.acacia(pos, tr, node_above, digger)
 	for i = 1,n-1 do
 		local pos,node = unpack(tab[i])
 		destroy_node(pos, node, digger)
+	end
+	return true
+end
+
+
+----------------------- Palm tree function -------------------------------------
+
+-- the 17 vectors used for walking the stem
+local palm_stem_dirs = {
+	{0,1,0}
+}
+local n = 2
+for i = -1,1,2 do
+	palm_stem_dirs[n] = {i,0,0}
+	palm_stem_dirs[n+1] = {0,0,i}
+	n = n+2
+end
+for i = -1,1,2 do
+	palm_stem_dirs[n] = {i,0,i}
+	palm_stem_dirs[n+1] = {i,0,-i}
+	n = n+2
+end
+for i = -1,1,2 do
+	palm_stem_dirs[n] = {i,1,0}
+	palm_stem_dirs[n+1] = {0,1,i}
+	n = n+2
+end
+for i = -1,1,2 do
+	palm_stem_dirs[n] = {i,1,i}
+	palm_stem_dirs[n+1] = {i,1,-i}
+	n = n+2
+end
+for i = 1,17 do
+	local p = palm_stem_dirs[i]
+	palm_stem_dirs[i] = vector.new(unpack(p))
+end
+
+local pos_from_hash = minetest.get_position_from_hash
+
+-- gets a list of leaves positions
+local function get_palm_head(tt_p, tr)
+	local pos = {x=tt_p.x, y=tt_p.y+1, z=tt_p.z}
+	local leaves = {}
+	if get_node(pos).name ~= tr.leaves then
+		-- search hub position
+		for xo = -1,1 do
+			for zo = -1,1 do
+				local p = {x=pos.x+xo, y=pos.y, z=pos.z+zo}
+				if get_node(p).name == tr.leaves then
+					pos = p
+				end
+			end
+		end
+	end
+	-- collect leaves
+	leaves[poshash(pos)] = true
+	for i = -1,1 do
+		for j = -1,1 do
+			-- don't search around the corner, FIXME
+			local dirs = {{0,0}, {i,0}, {0,j}, {i,j}}
+			local avoids = {}
+			local todo = {pos}
+			local sp = 1
+			while sp > 0 do
+				local p = todo[sp]
+				sp = sp-1
+				for i = 1,3 do
+					local xz = dirs[i]
+					for y = -1,2 do
+						local p = {x=p.x+xz[1], y=p.y+y, z=p.z+xz[2]}
+						local ph = poshash(p)
+						if not avoids[ph] then
+							avoids[ph] = true
+							local dif = vector.subtract(p, pos)
+							if get_node(p).name == tr.leaves
+							and math.abs(dif.x) <= tr.range
+							and math.abs(dif.z) <= tr.range
+							and dif.y <= tr.range_up
+							and dif.y >= -tr.range_down then
+								sp = sp+1
+								todo[sp] = p
+								leaves[ph] = true
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	local ps = {}
+	local n = 0
+	for ph in pairs(leaves) do
+		n = n+1
+		ps[n] = pos_from_hash(ph)
+	end
+	return ps,n
+end
+
+function capitate_funcs.palm(pos, tr, node_above, digger)
+	local trunk = tr.trees[1]
+
+	-- walk the stem up to the fruit carrier
+	pos = {x=pos.x, y=pos.y+1, z=pos.z}
+	local trunks = {{pos, node_above}}
+	local trunk_found = true
+	local hcp
+	while trunk_found
+	and not hcp do
+		trunk_found = false
+		for i = 1,17 do
+			local p = vector.add(pos, palm_stem_dirs[i])
+			local node = get_node(p)
+			if node.name == trunk then
+				trunk_found = true
+				trunks[#trunks+1] = {p, node}
+				pos = p
+				break
+			end
+			if node.name == tr.trunk_top then
+				hcp = p
+				trunks[#trunks+1] = {p, node}
+				break
+			end
+		end
+	end
+	if not hcp then
+		return
+	end
+
+	-- collect coconuts
+	local fruits = {}
+	for zo = -1,1 do
+		for xo = -1,1 do
+			local p = {x=hcp.x+xo, y=hcp.y, z=hcp.z+zo}
+			local node = get_node(p) then
+			if node.name == tr.fruit then
+				fruits[#fruits+1] = {p, node}
+			end
+		end
+	end
+
+	local leaves_ps,n = get_palm_head(hcp, tr)
+
+	if treecapitator.play_sound then
+		minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
+	end
+
+	local nodeupdate = minetest.check_for_falling
+	minetest.check_for_falling = function() end
+	for i = 1,#fruits do
+		local pos,node = unpack(fruits[i])
+		destroy_node(pos, node, digger)
+	end
+	minetest.check_for_falling = nodeupdate
+
+	for i = 1,#trunks do
+		local pos,node = unpack(trunks[i])
+		destroy_node(pos, node, digger)
+	end
+
+	local inv = digger:get_inventory()
+	for i = 1,n do
+		local pos = leaves_ps[i]
+		remove_leaf(pos, get_node(pos), inv, digger)
 	end
 	return true
 end
