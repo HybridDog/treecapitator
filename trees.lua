@@ -153,9 +153,9 @@ and minetest.get_modpath("moretrees") then
 		trunk_fruit_vertical = true,
 		cutting_leaves = 3,
 		stem_height_min = 4,
-		range = 6,
-		range_down = 11,
-		range_up = 4,
+		range = 8,
+		range_down = 13,
+		range_up = 10,
 	}
 
 	treecapitator.register_tree{

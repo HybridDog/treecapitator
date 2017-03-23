@@ -246,48 +246,20 @@ end
 
 -- adds the stem to the trunks
 local function get_stem(trunktop_ps, trunks, tr, head_ps)
-	local trees = tr.trees
-	if not tr.cutting_leaves then
-		for i = 1,#trunktop_ps do
-			local pos = trunktop_ps[i]
-			local node = get_node(pos)
-			while is_trunk_of_tree(trees, node) do
-				trunks[#trunks+1] = {pos, node}
-				pos = {x=pos.x, y=pos.y+1, z=pos.z}
-				node = get_node(pos)
-			end
-
-			-- renew trunk top position
-			pos.y = pos.y-1
-			trunktop_ps[i] = pos
-		end
+	if tr.cutting_leaves then
+		treecapitator.moretrees34(trunktop_ps, trunks, tr, head_ps,
+			get_node, is_trunk_of_tree)
 		return
 	end
 	for i = 1,#trunktop_ps do
 		local pos = trunktop_ps[i]
 		local node = get_node(pos)
-		while true do
-			while is_trunk_of_tree(trees, node) do
-				trunks[#trunks+1] = {pos, node}
-				pos = {x=pos.x, y=pos.y+1, z=pos.z}
-				node = get_node(pos)
-			end
-			local p_nxtt = {x=pos.x, y=pos.y+1, z=pos.z}
-			local n_nxtt = get_node(p_nxtt)
-			if not is_trunk_of_tree(trees, n_nxtt)
-			or not is_trunk_of_tree(trees, get_node{
-				x = pos.x,
-				y = pos.y+2,
-				z = pos.z
-			}) then
-				break
-			end
-			-- add leaves or whatsoever to the head positions
-			head_ps[#head_ps+1] = pos
-
-			pos = p_nxtt
-			node = n_nxtt
+		while is_trunk_of_tree(tr.trees, node) do
+			trunks[#trunks+1] = {pos, node}
+			pos = {x=pos.x, y=pos.y+1, z=pos.z}
+			node = get_node(pos)
 		end
+
 		-- renew trunk top position
 		pos.y = pos.y-1
 		trunktop_ps[i] = pos
@@ -455,9 +427,7 @@ function capitate_funcs.default(pos, tr, _, digger)
 			end
 		elseif is_trunk
 		and tr.trunk_fruit_vertical
-		and fruits ^ nodename
-		and not trees ^ get_node{x=p.x, y=p.y+1, z=p.z}.name
-		and not trees ^ get_node{x=p.x, y=p.y-1, z=p.z}.name then
+		and fruits ^ nodename then
 			trunks[#trunks+1] = {p, node}
 		end
 	end
@@ -745,6 +715,7 @@ end
 local path = minetest.get_modpath"treecapitator" .. DIR_DELIM
 dofile(path .. "api.lua")
 dofile(path .. "trees.lua")
+dofile(path .. "moretrees34.lua")
 
 
 local time = (minetest.get_us_time() - load_time_start) / 1000000
