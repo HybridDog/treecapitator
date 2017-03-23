@@ -129,12 +129,15 @@ and minetest.get_modpath("moretrees") then
 		range = 2,
 	})
 
-	treecapitator.register_tree({
+	treecapitator.register_tree{
 		trees = {"moretrees:apple_tree_trunk"},
 		leaves = {"moretrees:apple_tree_leaves"},
-		range = 20,
-		fruits = {"default:apple"}
-	})
+		fruits = {"default:apple", "moretrees:apple_tree_trunk"},
+		trunk_fruit_vertical = true,
+		range = 9,
+		range_up = 3,
+		range_down = 4,
+	}
 
 	treecapitator.register_tree{
 		trees = {"moretrees:beech_trunk"},

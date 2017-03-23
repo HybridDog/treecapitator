@@ -442,10 +442,14 @@ function capitate_funcs.default(pos, tr, _, digger)
 		end
 	end
 
-	-- remove fruits at first due to attachment (somehow still doesn't work)
+	-- remove fruits at first due to attachment
+	-- and disable nodeupdate temporarily
+	local nodeupdate = minetest.check_for_falling
+	minetest.check_for_falling = function() end
 	for i = 1,#fruits_toremove do
 		destroy_node(fruits_toremove[i][1], fruits_toremove[i][2], digger)
 	end
+	minetest.check_for_falling = nodeupdate
 	local inv = digger:get_inventory()
 	for i = 1,#leaves_toremove do
 		remove_leaf(leaves_toremove[i][1], leaves_toremove[i][2], inv, digger)
