@@ -25,4 +25,4 @@ TODO:
 * mgv7 jungletree
 * use range_up and range_down for other trees too for greater precision in neighbour detection
 * improve moretrees support (see issue )
-* support big acacia trees
+* moretrees acacia, jungle, cedar, 2 palm

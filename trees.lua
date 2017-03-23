@@ -121,13 +121,13 @@ and minetest.get_modpath("moretrees") then
 		range = 10,
 	})
 
-	treecapitator.register_tree({
+	treecapitator.register_tree{
 		trees = {"moretrees:poplar_trunk"},
 		leaves = {"moretrees:poplar_leaves"},
 		range_up = 4,
 		range_down = 15,
 		range = 2,
-	})
+	}
 
 	treecapitator.register_tree{
 		trees = {"moretrees:apple_tree_trunk"},
@@ -178,12 +178,16 @@ and minetest.get_modpath("moretrees") then
 		range = 8,
 	})
 
-	treecapitator.register_tree({
+	treecapitator.register_tree{
 		trees = {"moretrees:oak_trunk"},
 		leaves = {"moretrees:oak_leaves"},
-		range = 8,
-		fruits = {"moretrees:acorn"}
-	})
+		fruits = {"moretrees:acorn", "moretrees:oak_trunk"},
+		trunk_fruit_vertical = true,
+		stem_type = "+",
+		range = 11,
+		range_up = 11,
+		range_down = 1,
+	}
 
 	treecapitator.register_tree({
 		trees = {"moretrees:palm_trunk"},
@@ -224,7 +228,7 @@ and minetest.get_modpath("moretrees") then
 		stem_type = "+",
 		range = 10,
 		range_up = 3,
-		range_down = 32,
+		range_down = 33,
 		cutting_leaves = 6,
 		stem_height_min = 6,
 	}
@@ -241,13 +245,17 @@ and minetest.get_modpath("moretrees") then
 		range_up = 5,
 	}
 
-	--[[
-	treecapitator.register_tree({
+	treecapitator.register_tree{
 		trees = {"moretrees:willow_trunk"},
 		leaves = {"moretrees:willow_leaves"},
-		range = 10,
-	})
-	--]]
+		fruits = {"moretrees:willow_trunk"},
+		trunk_fruit_vertical = true,
+		stem_type = "+",
+		range = 13,
+		range_up = 6,
+		range_down = 6,
+	}
+
 
 	--~ treecapitator.register_tree({
 		--~ trees = {"moretrees:sequoia_trunk"},
@@ -264,18 +272,18 @@ and minetest.get_modpath("moretrees") then
 		--~ type = "moretrees",
 	--~ })
 
-	treecapitator.register_tree({
-		trees = {"moretrees:willow_trunk"},
-		leaves = {"moretrees:willow_leaves"},
-		range = 11,
-		height = 17,
-		max_nodes = 8000,
-		num_trunks_min = 5,
-		num_trunks_max = 400,
-		num_leaves_min = 10,
-		num_leaves_max = 4000,
-		type = "moretrees",
-	})
+	--~ treecapitator.register_tree({
+		--~ trees = {"moretrees:willow_trunk"},
+		--~ leaves = {"moretrees:willow_leaves"},
+		--~ range = 11,
+		--~ height = 17,
+		--~ max_nodes = 8000,
+		--~ num_trunks_min = 5,
+		--~ num_trunks_max = 400,
+		--~ num_leaves_min = 10,
+		--~ num_leaves_max = 4000,
+		--~ type = "moretrees",
+	--~ })
 end
 
 -- code from amadin and narrnika
