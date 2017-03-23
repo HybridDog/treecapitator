@@ -85,12 +85,22 @@ if treecapitator.drop_items then
 		remove_node(pos)
 	end
 else
-	function drop_leaf(pos, item, inv)
-		if inv
-		and inv:room_for_item("main", item) then
-			inv:add_item("main", item)
-		else
-			minetest.add_item(pos, item)
+	if minetest.setting_getbool"creative_mode" then
+		function drop_leaf(pos, item, inv)
+			if inv
+			and inv:room_for_item("main", item)
+			and not inv:contains_item("main", item) then
+				inv:add_item("main", item)
+			end
+		end
+	else
+		function drop_leaf(pos, item, inv)
+			if inv
+			and inv:room_for_item("main", item) then
+				inv:add_item("main", item)
+			else
+				minetest.add_item(pos, item)
+			end
 		end
 	end
 
