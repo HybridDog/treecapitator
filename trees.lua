@@ -26,7 +26,7 @@ trunk_fruit_vertical: set this to true to make a trunk node, if it's in trees
 cutting_leaves: used as workaround for moretrees#34
 stem_type: set to "2x2" for a thick tree, "+" for a even thicker one,
 	anything else is currently interpreted as single stem
-stem_height_min: indicates how much trunk nodes a neighbour tree stem have to
+stem_height_min: indicates how much trunk nodes a neighbour tree stem has to
 	consist of
 
 
@@ -212,12 +212,19 @@ and minetest.get_modpath("moretrees") then
 		range_down = 1,
 		range_up = 8,
 	}
---[[
-	treecapitator.register_tree({
+
+	treecapitator.register_tree{
 		trees = {"moretrees:sequoia_trunk"},
 		leaves = {"moretrees:sequoia_leaves"},
-		range = 12,
-	})--]]
+		fruits = {"moretrees:sequoia_trunk"},
+		trunk_fruit_vertical = true,
+		stem_type = "+",
+		range = 10,
+		range_up = 3,
+		range_down = 32,
+		cutting_leaves = 6,
+		stem_height_min = 6,
+	}
 
 	treecapitator.register_tree{
 		trees = {"moretrees:spruce_trunk"},
@@ -239,20 +246,20 @@ and minetest.get_modpath("moretrees") then
 	})
 	--]]
 
-	treecapitator.register_tree({
-		trees = {"moretrees:sequoia_trunk"},
-		leaves = {"moretrees:sequoia_leaves"},
-		range = 8,
+	--~ treecapitator.register_tree({
+		--~ trees = {"moretrees:sequoia_trunk"},
+		--~ leaves = {"moretrees:sequoia_leaves"},
+		--~ range = 8,
 
 
-		height = 17,
-		max_nodes = 8000,
-		num_trunks_min = 5,
-		num_trunks_max = 400,
-		num_leaves_min = 10,
-		num_leaves_max = 4000,
-		type = "moretrees",
-	})
+		--~ height = 17,
+		--~ max_nodes = 8000,
+		--~ num_trunks_min = 5,
+		--~ num_trunks_max = 400,
+		--~ num_leaves_min = 10,
+		--~ num_leaves_max = 4000,
+		--~ type = "moretrees",
+	--~ })
 
 	treecapitator.register_tree({
 		trees = {"moretrees:willow_trunk"},
