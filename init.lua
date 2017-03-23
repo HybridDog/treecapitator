@@ -141,8 +141,8 @@ end
 
 -- test if the trunk node there is the top trunk node of a neighbour tree
 -- if so, constrain the possible leaves positions
-local function get_a_tree(pos, tab, tr, i,h,j)
-	local p = {x=pos.x+j, y=pos.y+h, z=pos.z+i}
+local function get_a_tree(pos, tab, tr, xo,yo,zo)
+	local p = {x=pos.x + xo, y=pos.y + yo, z=pos.z + zo}
 
 	-- tests if a trunk is at the current pos
 	local nd = get_node(p)
@@ -182,12 +182,12 @@ local function get_a_tree(pos, tab, tr, i,h,j)
 	end
 
 	-- tag places which should not be removed
-	local z1 = math.max(-r + i, -r)
-	local z2 = math.min(r + i, r)
-	local y1 = math.max(-r_down + h, -r_down)
-	local y2 = math.min(r_up + h, r_up)
-	local x1 = math.max(-r + j, -r)
-	local x2 = math.min(r + j, r)
+	local z1 = math.max(-r + zo, -r)
+	local z2 = math.min(r + zo, r)
+	local y1 = math.max(-r_down + yo, -r_down)
+	local y2 = math.min(r_up + yo, r_up)
+	local x1 = math.max(-r + xo, -r)
+	local x2 = math.min(r + xo, r)
 	for z = z1,z2 do
 		for y = y1,y2 do
 			local i = poshash{x=x1, y=y, z=z}
