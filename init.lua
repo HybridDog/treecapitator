@@ -710,7 +710,7 @@ function capitate_funcs.palm(pos, tr, node_above, digger)
 	for zo = -1,1 do
 		for xo = -1,1 do
 			local p = {x=hcp.x+xo, y=hcp.y, z=hcp.z+zo}
-			local node = get_node(p) then
+			local node = get_node(p)
 			if node.name == tr.fruit then
 				fruits[#fruits+1] = {p, node}
 			end
