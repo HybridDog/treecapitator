@@ -762,7 +762,7 @@ function capitate_funcs.palm(pos, tr, node_above, digger)
 		for xo = -1,1 do
 			local p = {x=hcp.x+xo, y=hcp.y, z=hcp.z+zo}
 			local node = get_node(p)
-			if node.name == tr.fruit then
+			if node.name:sub(1, #tr.fruit) == tr.fruit then
 				fruits[#fruits+1] = {p, node}
 			end
 		end
@@ -776,7 +776,6 @@ function capitate_funcs.palm(pos, tr, node_above, digger)
 		minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
 	end
 
-	-- doesn't work, same for check_single_for_falling
 	local nodeupdate = minetest.check_for_falling
 	minetest.check_for_falling = function() end
 	for i = 1,#fruits do
