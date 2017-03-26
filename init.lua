@@ -732,23 +732,29 @@ function capitate_funcs.palm(pos, tr, node_above, digger)
 	pos = {x=pos.x, y=pos.y+1, z=pos.z}
 	local trunks = {{pos, node_above}}
 	local trunk_found = true
+	local nohori = false
 	local hcp
 	while trunk_found
 	and not hcp do
 		trunk_found = false
 		for i = 1,17 do
-			local p = vector.add(pos, palm_stem_dirs[i])
-			local node = get_node(p)
-			if node.name == trunk then
-				trunk_found = true
-				trunks[#trunks+1] = {p, node}
-				pos = p
-				break
-			end
-			if node.name == tr.trunk_top then
-				hcp = p
-				trunks[#trunks+1] = {p, node}
-				break
+			local hori = i > 1 and i < 10
+			if not hori
+			or not nohori then
+				local p = vector.add(pos, palm_stem_dirs[i])
+				local node = get_node(p)
+				if node.name == trunk then
+					trunk_found = true
+					trunks[#trunks+1] = {p, node}
+					pos = p
+					nohori = hori
+					break
+				end
+				if node.name == tr.trunk_top then
+					hcp = p
+					trunks[#trunks+1] = {p, node}
+					break
+				end
 			end
 		end
 	end
