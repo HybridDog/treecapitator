@@ -616,7 +616,7 @@ end
 local pos_from_hash = minetest.get_position_from_hash
 
 -- gets a list of leaves positions
-local function get_palm_head(hcp, tr)
+local function get_palm_head(hcp, tr, max_forbi)
 	local pos = {x=hcp.x, y=hcp.y+1, z=hcp.z}
 	local leaves = {}
 	if get_node(pos).name ~= tr.leaves then
@@ -634,7 +634,7 @@ local function get_palm_head(hcp, tr)
 	leaves[poshash(pos)] = true
 	for i = -1,1 do
 		for j = -1,1 do
-			-- don't search around the corner except <see below> time(s)
+			-- don't search around the corner except max_forbi time(s)
 			local dirs = {{0,0}, {i,0}, {0,j}, {i,j},  {-i,0}, {0,-j}}
 			local avoids = {}
 			local todo = {pos}
@@ -645,7 +645,7 @@ local function get_palm_head(hcp, tr)
 				-- only walk the "forbidden" dir if still allowed
 				local forbic = avoids[poshash(p)] or 0
 				local dirc = 6
-				if forbic == tr.max_forbi then
+				if forbic == max_forbi then
 					dirc = dirc - 2
 				end
 				-- walk the directions
@@ -704,7 +704,7 @@ local function palm_find_valid_head_ps(pos, head_ps, tr)
 				local hcp = {x=pos.x+x, y=pos.y+y, z=pos.z+z}
 				if not vector.equals(hcp, pos)
 				and get_node(hcp).name == tr.trunk_top then
-					local leaves,n = get_palm_head(hcp, tr)
+					local leaves,n = get_palm_head(hcp, tr, 0)
 					for i = 1,n do
 						tab[poshash(leaves[i])] = true
 					end
@@ -713,7 +713,7 @@ local function palm_find_valid_head_ps(pos, head_ps, tr)
 		end
 	end
 	-- now, get the leaves positions without the neighbouring leaves
-	local leaves,lc = get_palm_head(pos, tr)
+	local leaves,lc = get_palm_head(pos, tr, tr.max_forbi)
 	local n = #head_ps
 	for i = 1,lc do
 		local p = leaves[i]
