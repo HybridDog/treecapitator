@@ -414,12 +414,8 @@ function capitate_funcs.default(pos, tr, _, digger)
 		end
 	end
 
-	-- something becomes dug, thus play the sound now
-	if treecapitator.play_sound then
-		minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
-	end
-
 	-- get leaves, fruits and stem fruits
+	local leaves_found = {}
 	local n = find_valid_head_ps(hcp, head_ps, trunktop_ps, tr)
 	local leaves_toremove = {}
 	local fruits_toremove = {}
@@ -431,6 +427,7 @@ function capitate_funcs.default(pos, tr, _, digger)
 		if node.param2 ~= 0
 		or not is_trunk then
 			if leaves ^ nodename then
+				leaves_found[nodename] = true
 				leaves_toremove[#leaves_toremove+1] = {p, node}
 			elseif fruits ^ nodename then
 				fruits_toremove[#fruits_toremove+1] = {p, node}
@@ -439,6 +436,15 @@ function capitate_funcs.default(pos, tr, _, digger)
 		and tr.trunk_fruit_vertical
 		and fruits ^ nodename then
 			trunks[#trunks+1] = {p, node}
+		end
+	end
+
+	if tr.requisite_leaves then
+		-- abort if specific leaves weren't found
+		for i = 1,#tr.requisite_leaves do
+			if not leaves_found[tr.requisite_leaves[i]] then
+				return
+			end
 		end
 	end
 
@@ -456,6 +462,11 @@ function capitate_funcs.default(pos, tr, _, digger)
 	end
 	for i = 1,#trunks do
 		destroy_node(trunks[i][1], trunks[i][2], digger)
+	end
+
+	-- tree was capitated, play sound
+	if treecapitator.play_sound then
+		minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
 	end
 	return true
 end

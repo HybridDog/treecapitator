@@ -10,24 +10,47 @@ treecapitator.register_tree({
 	cutting_leaves = <leaves_count>,
 	stem_type = <some_string>,
 	stem_height_min = <height>,
+	requisite_leaves = {<node1>, <node2>, ...},
 	type = "default",
 })
 
-trees:	the straight stem nodes with param2=0
-leaves:	nodes of the tree head which only drop their main item if drop_leaf is enabled
-range:	the size of the tree head cuboid
-	when using thicker stems the range needs to be bigger
-range_up: range upwards beginning from the highest trunk node to head top
-	if omitted it's set to range
-range_down: like range_up but downwards
-fruits:	similar to leaves but without the drop_leaf setting condition
-trunk_fruit_vertical: set this to true to make a trunk node, if it's in trees
-	and fruits, get removed even if it isn't rotated (param2 = 0)
-cutting_leaves: used as workaround for moretrees#34
-stem_type: set to "2x2" for a thick tree, "+" for a even thicker one,
-	anything else is currently interpreted as single stem
-stem_height_min: indicates how much trunk nodes a neighbour tree stem has to
-	consist of
+trees
+the straight stem nodes with param2=0
+
+leaves
+nodes of the tree head which only drop their main item if drop_leaf is enabled
+
+range
+the size of the tree head cuboid
+when using thicker stems the range needs to be bigger
+
+range_up
+range upwards beginning from the highest trunk node to head top
+if omitted it's set to range
+
+range_down
+like range_up but downwards
+
+fruits
+similar to leaves but without the drop_leaf setting condition
+
+trunk_fruit_vertical
+set this to true to make a trunk node, if it's in trees
+and fruits, get removed even if it isn't rotated (param2 = 0)
+
+cutting_leaves
+used as workaround for moretrees#34
+
+stem_type
+set to "2x2" for a thick tree, "+" for a even thicker one,
+anything else is currently interpreted as single stem
+
+stem_height_min
+indicates how much trunk nodes a neighbour tree stem has to
+consist of
+
+requisite_leaves
+if set, abort capitating if one of those nodes weren't found in the head
 
 
 treecapitator.register_tree({
@@ -124,9 +147,29 @@ and minetest.get_modpath("moretrees") then
 	treecapitator.register_tree{
 		trees = {"moretrees:poplar_trunk"},
 		leaves = {"moretrees:poplar_leaves"},
-		range_up = 4,
+		range_up = 5,
 		range_down = 17,
 		range = 2,
+	}
+
+	local dates = {"moretrees:dates_fn", "moretrees:dates_m0",
+		"moretrees:dates_n"}
+	for i = 0, 4 do
+		dates[#dates+1] = "moretrees:dates_f" .. i
+	end
+	dates[#dates+1] = "moretrees:date_palm_trunk"
+	treecapitator.register_tree{
+		trees = {
+			"moretrees:date_palm_trunk",
+			"moretrees:date_palm_mfruit_trunk",
+			"moretrees:date_palm_ffruit_trunk"
+		},
+		leaves = {"moretrees:date_palm_leaves"},
+		fruits = dates,
+		trunk_fruit_vertical = true,
+		range = 11,
+		range_up = 15,
+		range_down = 0,
 	}
 
 	treecapitator.register_tree{
@@ -193,7 +236,7 @@ and minetest.get_modpath("moretrees") then
 	treecapitator.register_tree({
 		trees = {"moretrees:cedar_trunk"},
 		leaves = {"moretrees:cedar_leaves"},
-		range = 8,
+		range = 10,
 		range_up = 1,
 		range_down = 19,
 		trunk_fruit_vertical = true,
@@ -249,6 +292,33 @@ and minetest.get_modpath("moretrees") then
 		range_down = 6,
 	}
 
+	treecapitator.register_tree{ -- small and 2x2 jungletree at once
+		trees = {"moretrees:jungletree_trunk"},
+		leaves = {"default:jungleleaves", "moretrees:jungletree_leaves_red"},
+		fruits = {"moretrees:jungletree_trunk"},
+		requisite_leaves = {"moretrees:jungletree_leaves_red"},
+		trunk_fruit_vertical = true,
+		stem_height_min = 4,
+		cutting_leaves = 5,
+		stem_type = "2x2",
+		range = 8, -- 5 small
+		range_up = 2, -- 1 small
+		range_down = 17, -- 6 small
+	}
+
+	treecapitator.register_tree{
+		trees = {"moretrees:jungletree_trunk"},
+		leaves = {"default:jungleleaves", "moretrees:jungletree_leaves_yellow",
+			"moretrees:jungletree_leaves_red"},
+		fruits = {"moretrees:jungletree_trunk"},
+		requisite_leaves = {"moretrees:jungletree_leaves_yellow"},
+		trunk_fruit_vertical = true,
+		cutting_leaves = 5,
+		stem_type = "+",
+		range = 8,
+		range_up = 4,
+		range_down = 16,
+	}
 
 	treecapitator.register_tree{
 		trees = {"moretrees:palm_trunk"},
