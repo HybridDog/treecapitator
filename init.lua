@@ -634,21 +634,35 @@ local function get_palm_head(tt_p, tr)
 	leaves[poshash(pos)] = true
 	for i = -1,1 do
 		for j = -1,1 do
-			-- don't search around the corner, FIXME
-			local dirs = {{0,0}, {i,0}, {0,j}, {i,j}}
+			-- don't search around the corner except <see below> time(s)
+			local dirs = {{0,0}, {i,0}, {0,j}, {i,j},  {-i,0}, {0,-j}}
 			local avoids = {}
 			local todo = {pos}
 			local sp = 1
 			while sp > 0 do
 				local p = todo[sp]
 				sp = sp-1
-				for i = 1,3 do
+				-- only walk the "forbidden" dir if still allowed
+				local forbic = avoids[poshash(p)] or 0
+				local dirc = 6
+				if forbic == 1 then
+					dirc = dirc - 2
+				end
+				-- walk the directions
+				for i = 1,dirc do
+					-- increase forbidden when needed
+					local forbinc = forbic
+					if i > 4 then
+						forbinc = forbinc+1
+					end
 					local xz = dirs[i]
 					for y = -1,2 do
 						local p = {x=p.x+xz[1], y=p.y+y, z=p.z+xz[2]}
 						local ph = poshash(p)
-						if not avoids[ph] then
-							avoids[ph] = true
+						local forbi = avoids[ph]
+						if not forbi
+						or forbi > forbinc then
+							avoids[ph] = forbinc
 							local dif = vector.subtract(p, pos)
 							if get_node(p).name == tr.leaves
 							and math.abs(dif.x) <= tr.range
