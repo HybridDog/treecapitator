@@ -258,6 +258,7 @@ and minetest.get_modpath("moretrees") then
 		range = 10,
 		range_up = 7,
 		range_down = 4,
+		max_forbi = 2,
 		type = "palm",
 	}
 

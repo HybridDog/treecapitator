@@ -24,5 +24,6 @@ TODO:
 * fix mgv7 default apple tree neighbour tree detection, there sometimes is a sheet removed
 * mgv7 jungletree
 * use range_up and range_down for other trees too for greater precision in neighbour detection
-* improve moretrees support (see issue )
-* moretrees acacia, jungle, cedar, 2 palm
+* improve moretrees support (see issue #2)
+* moretrees acacia, jungle, cedar, date palm
+* fix coconut falling without permission

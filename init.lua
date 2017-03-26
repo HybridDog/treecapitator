@@ -616,8 +616,8 @@ end
 local pos_from_hash = minetest.get_position_from_hash
 
 -- gets a list of leaves positions
-local function get_palm_head(tt_p, tr)
-	local pos = {x=tt_p.x, y=tt_p.y+1, z=tt_p.z}
+local function get_palm_head(hcp, tr)
+	local pos = {x=hcp.x, y=hcp.y+1, z=hcp.z}
 	local leaves = {}
 	if get_node(pos).name ~= tr.leaves then
 		-- search hub position
@@ -645,7 +645,7 @@ local function get_palm_head(tt_p, tr)
 				-- only walk the "forbidden" dir if still allowed
 				local forbic = avoids[poshash(p)] or 0
 				local dirc = 6
-				if forbic == 1 then
+				if forbic == tr.max_forbi then
 					dirc = dirc - 2
 				end
 				-- walk the directions
@@ -686,6 +686,43 @@ local function get_palm_head(tt_p, tr)
 		ps[n] = pos_from_hash(ph)
 	end
 	return ps,n
+end
+
+-- returns positions for palm leaves allowed to be dug
+local function palm_find_valid_head_ps(pos, head_ps, tr)
+	local r = tr.range
+	local r_up = tr.range_up or r
+	local r_down = tr.range_down or r
+
+	-- firstly, detect neighbour palms' leaves to not hurt them
+	local tab = {}
+	local rx2 = 2 * r
+	local rupdown = r_up + r_down
+	for z = -rx2, rx2 do
+		for y = -rupdown, rupdown do
+			for x = -rx2, rx2 do
+				local hcp = {x=pos.x+x, y=pos.y+y, z=pos.z+z}
+				if not vector.equals(hcp, pos)
+				and get_node(hcp).name == tr.trunk_top then
+					local leaves,n = get_palm_head(hcp, tr)
+					for i = 1,n do
+						tab[poshash(leaves[i])] = true
+					end
+				end
+			end
+		end
+	end
+	-- now, get the leaves positions without the neighbouring leaves
+	local leaves,lc = get_palm_head(pos, tr)
+	local n = #head_ps
+	for i = 1,lc do
+		local p = leaves[i]
+		if not tab[poshash(p)] then
+			n = n+1
+			head_ps[n] = p
+		end
+	end
+	return n
 end
 
 function capitate_funcs.palm(pos, tr, node_above, digger)
@@ -731,12 +768,15 @@ function capitate_funcs.palm(pos, tr, node_above, digger)
 		end
 	end
 
-	local leaves_ps,n = get_palm_head(hcp, tr)
+	-- find the leaves of the palm
+	local leaves_ps = {}
+	local lc = palm_find_valid_head_ps(hcp, leaves_ps, tr)
 
 	if treecapitator.play_sound then
 		minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
 	end
 
+	-- doesn't work, same for check_single_for_falling
 	local nodeupdate = minetest.check_for_falling
 	minetest.check_for_falling = function() end
 	for i = 1,#fruits do
@@ -751,7 +791,7 @@ function capitate_funcs.palm(pos, tr, node_above, digger)
 	end
 
 	local inv = digger:get_inventory()
-	for i = 1,n do
+	for i = 1,lc do
 		local pos = leaves_ps[i]
 		remove_leaf(pos, get_node(pos), inv, digger)
 	end
