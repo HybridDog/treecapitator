@@ -27,3 +27,5 @@ TODO:
 * improve moretrees support (see issue #2)
 * moretrees acacia
 * more precise neighbour detection for moretrees (cedar), fix moretree jungletree ignoring default jungletrees' leaves
+* technic chainsaw
+* proper documentation

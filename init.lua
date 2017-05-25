@@ -9,6 +9,7 @@ treecapitator = {
 	drop_leaf = false,
 	play_sound = true,
 	moretrees_support = false,
+	no_hand_capitation = false,
 	delay = 0,
 	stem_height_min = 3,
 	default_tree = {	--replaces not defined stuff (see below)
@@ -927,7 +928,8 @@ local capitating = false	--necessary if minetest.node_dig is used
 function treecapitator.capitate_tree(pos, digger)
 	if capitating
 	or not digger
-	or digger:get_player_control().sneak then
+	or digger:get_player_control().sneak
+	or not treecapitator.capitation_allowed(pos, digger) then
 		return
 	end
 	local t1 = minetest.get_us_time()
