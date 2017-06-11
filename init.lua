@@ -28,9 +28,9 @@ for name,v in pairs(treecapitator) do
 	--local typ = type(v)
 	local neuv
 	if type(v) == "boolean" then
-		neuv = minetest.setting_getbool(setting)
+		neuv = minetest.settings:get_bool(setting)
 	else--if typ == "number" then
-		neuv = tonumber(minetest.setting_get(setting))
+		neuv = tonumber(minetest.settings:get(setting))
 	end
 	if neuv ~= nil then
 		treecapitator[name] = neuv
@@ -86,7 +86,7 @@ if treecapitator.drop_items then
 		remove_node(pos)
 	end
 else
-	if minetest.setting_getbool"creative_mode" then
+	if minetest.settings:get_bool"creative_mode" then
 		function drop_leaf(_, item, inv)
 			if inv
 			and inv:room_for_item("main", item)
