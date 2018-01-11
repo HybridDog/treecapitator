@@ -73,6 +73,7 @@ num_trunks_min…
 ]]
 
 local mgname = minetest.get_mapgen_setting"mg_name"
+
 if mgname == "v7" then
 	treecapitator.register_tree{
 		trees = {"default:tree"},
@@ -83,6 +84,16 @@ if mgname == "v7" then
 		fruits = {"default:apple", "default:tree"},
 		trunk_fruit_vertical = true
 	}
+elseif mgname == "valleys" then
+       treecapitator.register_tree({
+		trees = {"default:tree"},
+		leaves = {"default:leaves"},
+		range = 2,
+		range_up = 5,
+		range_down = 0,
+		fruits = {"default:apple", "default:tree"},
+		trunk_fruit_vertical = true,
+	})
 else
 	treecapitator.register_tree{
 		trees = {"default:tree"},
@@ -92,18 +103,45 @@ else
 	}
 end
 
+if mgname == "valleys" then
+	treecapitator.register_tree({
+		trees = {"default:jungletree"},
+		leaves = {"default:jungleleaves"},
+		fruits = {"default:jungletree"},
+		range = 4,
+		range_up = 14,
+		range_down = 3,
+		trunk_fruit_vertical = true,
+		cutting_leaves = 5,
+		stem_height_min = 12,
+	})
+
+	treecapitator.register_tree({
+		trees = {"default:jungletree"},
+		leaves = {"default:jungleleaves"},
+		fruits = {"default:jungletree"},
+		range = 4,
+		range_up = 14,
+		range_down = 3,
+		trunk_fruit_vertical = true,
+		cutting_leaves = 5,
+		stem_type = "2x2",
+		stem_height_min = 12,
+	})
+else
+	treecapitator.register_tree({
+		trees = {"default:jungletree"},
+		leaves = {"default:jungleleaves"},
+		range = 3
+	})
+end
+
 treecapitator.register_tree({
 	trees = {"default:pine_tree"},
 	leaves = {"default:pine_needles"},
 	range_up = 2,
 	range_down = 6,
 	range = 3,
-})
-
-treecapitator.register_tree({
-	trees = {"default:jungletree"},
-	leaves = {"default:jungleleaves"},
-	range = 3
 })
 
 treecapitator.register_tree({
