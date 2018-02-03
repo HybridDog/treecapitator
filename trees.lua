@@ -72,6 +72,8 @@ max_nodes:	maximum amount of nodes the tree is allowed to consist of
 num_trunks_min…
 ]]
 
+-- Please try to match the tree definition close to the real tree for a more
+-- fitting usage of neighbour detection and similar mechanisms.
 local mgname = minetest.get_mapgen_setting"mg_name"
 
 if mgname == "v7" then

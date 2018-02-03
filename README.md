@@ -1,14 +1,20 @@
 [Mod] treecapitator [treecapitator]
 
-I edited Jeja's timber mod to create this mod.  
-[There I got the name.](http://www.minecraftforum.net/topic/1009577-147-daftpvfs-mods-treecapitator-ingameinfo-crystalwing-startinginv-floatingruins/)  
-It works like the timber mod but it destroys the leaves and the fruits, too. Of course, the leaves won't be dropped - only saplings. Hold shift to avoid its function. Neighbour trees are detected and preserved.
+This mod is makes digging a trunk node of a tree destroy the whole tree
+including the leaves and the fruits. There are many settings, such as dropping
+no leaves but only saplings (as leafdecay does it).<br/>
+Holding shift you can avoid its function to dig the single trunk node.<br/>
+Neighbour trees are detected and preserved.<br/>
+This mod is based on Jeja's timber mod, however, the code was revised over and
+over, so it became a different mod (according to the
+[broom theory](https://www.youtube.com/watch?v=51n-EBigXmg) that is).<br/>
+[There I got the name.](http://www.minecraftforum.net/topic/1009577-147-daftpvfs-mods-treecapitator-ingameinfo-crystalwing-startinginv-floatingruins/)
 
-**Depends:** see [depends.txt](https://raw.githubusercontent.com/HybridDog/treecapitator/master/depends.txt)  
-**License:** see [LICENSE.txt](https://raw.githubusercontent.com/HybridDog/treecapitator/master/LICENSE.txt)  
+**Depends:** see [depends.txt](https://raw.githubusercontent.com/HybridDog/treecapitator/master/depends.txt)<br/>
+**License:** see [LICENSE.txt](https://raw.githubusercontent.com/HybridDog/treecapitator/master/LICENSE.txt)<br/>
 **Download:** [zip](https://github.com/HybridDog/treecapitator/archive/master.zip), [tar.gz](https://github.com/HybridDog/treecapitator/archive/master.tar.gz)
 
-![I'm a screenshot!](https://forum.minetest.net/download/file.php?id=571)  
+![I'm a screenshot!](https://forum.minetest.net/download/file.php?id=571)<br/>
 ↑ you can only see the animation if your browser supports apng
 
 If you got ideas or found bugs, please tell them to me.

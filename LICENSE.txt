@@ -1,3 +1,2 @@
-the mod's code's origin is from Jeija's timber mod (GPL)
+The mod is licensed under WTFPL.
 sound from http://www.freesound.org/people/ecfike/sounds/139952/, edited with audacity (WTFPL)
-rest WTFPL
