@@ -105,39 +105,6 @@ else
 	}
 end
 
-if mgname == "valleys" then
-	treecapitator.register_tree({
-		trees = {"default:jungletree"},
-		leaves = {"default:jungleleaves"},
-		fruits = {"default:jungletree"},
-		range = 4,
-		range_up = 14,
-		range_down = 3,
-		trunk_fruit_vertical = true,
-		cutting_leaves = 5,
-		stem_height_min = 12,
-	})
-
-	treecapitator.register_tree({
-		trees = {"default:jungletree"},
-		leaves = {"default:jungleleaves"},
-		fruits = {"default:jungletree"},
-		range = 4,
-		range_up = 14,
-		range_down = 3,
-		trunk_fruit_vertical = true,
-		cutting_leaves = 5,
-		stem_type = "2x2",
-		stem_height_min = 12,
-	})
-else
-	treecapitator.register_tree({
-		trees = {"default:jungletree"},
-		leaves = {"default:jungleleaves"},
-		range = 3
-	})
-end
-
 treecapitator.register_tree({
 	trees = {"default:pine_tree"},
 	leaves = {"default:pine_needles"},
@@ -158,6 +125,31 @@ treecapitator.register_tree({
 	trees = {"default:aspen_tree"},
 	leaves = {"default:aspen_leaves"},
 	range = 4,
+})
+
+treecapitator.register_tree({
+	trees = {"default:jungletree"},
+	leaves = {"default:jungleleaves"},
+	fruits = {"default:jungletree"},
+	range = 4,
+	range_up = 14,
+	range_down = 3,
+	trunk_fruit_vertical = true,
+	cutting_leaves = 5,
+	stem_height_min = 12,
+})
+
+treecapitator.register_tree({
+	trees = {"default:jungletree"},
+	leaves = {"default:jungleleaves"},
+	fruits = {"default:jungletree"},
+	range = 4,
+	range_up = 14,
+	range_down = 3,
+	trunk_fruit_vertical = true,
+	cutting_leaves = 5,
+	stem_type = "2x2",
+	stem_height_min = 12,
 })
 
 if minetest.get_modpath("farming_plus") then
