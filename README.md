@@ -30,8 +30,9 @@ If you got ideas or found bugs, please tell them to me.
 	Made "drop_items" and "drop_leaf" both "true" by default. (mintpick)
 
 TODO:
-* fix mgv7 default apple tree neighbour tree detection, there sometimes is a
-	sheet removed
+* fix neighbour tree detection, wrong nodes become dug (test with vertical
+	trunk fruit),
+	pertains to non-v6 apple tree and jungle tree
 * use range_up and range_down for other trees too for greater precision in
 	neighbour detection
 * improve moretrees support (see issue #2)
@@ -43,3 +44,5 @@ TODO:
 * Test if pine trees are different on v6 and non-v6 mapgen
 * Add a priority and priority condition to allow handling cone pine trees
 	differently
+* Get rid of the cutting_leaves arguments because the problem is fixed in
+	minetest

@@ -106,9 +106,8 @@ else
 		fruits = {"default:jungletree"},
 		range = 4,
 		range_up = 14,
-		range_down = 3,
+		range_down = 5,
 		trunk_fruit_vertical = true,
-		cutting_leaves = 5,
 		stem_height_min = 12,
 	})
 
@@ -120,7 +119,6 @@ else
 		range_up = 14,
 		range_down = 3,
 		trunk_fruit_vertical = true,
-		cutting_leaves = 5,
 		stem_type = "2x2",
 		stem_height_min = 12,
 	})

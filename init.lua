@@ -146,7 +146,9 @@ local capitate_funcs = {}
 
 -- tests if the node is a trunk which could belong to the same tree sort
 local function is_trunk_of_tree(trees, node)
-	return node.param2 == 0
+	-- param2 is not longer tested to be 0 but smaller than 4
+	-- because sometimes the trunk is a bit rotated
+	return node.param2 < 4
 		and trees ^ node.name
 end
 
@@ -424,17 +426,14 @@ function capitate_funcs.default(pos, tr, _, digger)
 		local p = head_ps[i]
 		local node = get_node(p)
 		local nodename = node.name
-		local is_trunk = trees ^ nodename
-		if node.param2 ~= 0
-		or not is_trunk then
+		if not is_trunk_of_tree(trees, node) then
 			if leaves ^ nodename then
 				leaves_found[nodename] = true
 				leaves_toremove[#leaves_toremove+1] = {p, node}
 			elseif fruits ^ nodename then
 				fruits_toremove[#fruits_toremove+1] = {p, node}
 			end
-		elseif is_trunk
-		and tr.trunk_fruit_vertical
+		elseif tr.trunk_fruit_vertical
 		and fruits ^ nodename then
 			trunks[#trunks+1] = {p, node}
 		end
