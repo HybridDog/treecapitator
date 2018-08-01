@@ -24,14 +24,15 @@ function treecapitator.register_tree(tr)
 		end
 		local func = after_dig_wrap
 		local prev_after_dig = data.after_dig_node
-		if prev_after_dig then
+		if prev_after_dig
+		and not after_dig_nodes[nodename] then
 			func = function(pos, oldnode, oldmetadata, digger)
 				prev_after_dig(pos, oldnode, oldmetadata, digger)
 				treecapitator.capitate_tree(pos, digger)
 			end
 		end
 		minetest.override_item(nodename, {after_dig_node = func})
-		after_dig_nodes[#after_dig_nodes+1] = nodename
+		after_dig_nodes[nodename] = true
 	end
 end
 
@@ -60,8 +61,7 @@ end
 
 -- test if trunk nodes were redefined
 minetest.after(2, function()
-	for i = 1,#after_dig_nodes do
-		local nodename = after_dig_nodes[i]
+	for nodename in pairs(after_dig_nodes) do
 		if not minetest.registered_nodes[nodename].after_dig_node then
 			error(nodename .. " didn't keep after_dig_node.")
 		end
