@@ -22,16 +22,24 @@ If you got ideas or found bugs, please tell them to me.
 [How to install a mod?](http://wiki.minetest.net/Installing_Mods)
 
 
-[13.04.2015] Added in trees for moretrees, working out getting proper naming for capitating to work.
+[13.04.2015] Added in trees for moretrees, working out getting proper naming
+	for capitating to work.
 
-﻿[14.03.2015] Added sound of a falling tree (taken from there http://www.freesound.org/people/ecfike/sounds/139952/). Made "drop_items" and "drop_leaf" both "true" by default. (mintpick)
+﻿[14.03.2015] Added sound of a falling tree (taken from there
+	http://www.freesound.org/people/ecfike/sounds/139952/).
+	Made "drop_items" and "drop_leaf" both "true" by default. (mintpick)
 
 TODO:
-* fix mgv7 default apple tree neighbour tree detection, there sometimes is a sheet removed
-* mgv7 jungletree
-* use range_up and range_down for other trees too for greater precision in neighbour detection
+* fix mgv7 default apple tree neighbour tree detection, there sometimes is a
+	sheet removed
+* use range_up and range_down for other trees too for greater precision in
+	neighbour detection
 * improve moretrees support (see issue #2)
 * moretrees acacia
-* more precise neighbour detection for moretrees (cedar), fix moretree jungletree ignoring default jungletrees' leaves
+* more precise neighbour detection for moretrees (cedar), fix moretree
+	jungletree ignoring default jungletrees' leaves
 * technic chainsaw
 * proper documentation
+* Test if pine trees are different on v6 and non-v6 mapgen
+* Add a priority and priority condition to allow handling cone pine trees
+	differently
