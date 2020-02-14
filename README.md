@@ -46,3 +46,5 @@ TODO:
 	differently
 * Get rid of the cutting_leaves arguments because the problem is fixed in
 	minetest
+* consider neighbour tree's stem and not only head during neighbour detection
+* add dfs head search (and a parameter to enable it)

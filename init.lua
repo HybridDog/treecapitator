@@ -174,6 +174,7 @@ local function get_a_tree(pos, tab, tr, xo,yo,zo)
 		end
 	end
 
+	local y_top_trunk = p.y
 	-- search for the requisite amount of stem trunk nodes
 	for _ = 1, tr.stem_height_min-1 do
 		p.y = p.y-1
@@ -181,11 +182,31 @@ local function get_a_tree(pos, tab, tr, xo,yo,zo)
 			return false
 		end
 	end
-	p.y = p.y + tr.stem_height_min-1
+	p.y = y_top_trunk
 
 	local r = tr.range
 	local r_up = tr.range_up or r
 	local r_down = tr.range_down or r
+
+	if yo > 0 then
+		-- the neighbour tree is higher than the one which needs to be capitated
+		-- therefore tag the stem trunks
+		for _ = 1, tr.stem_height_min do
+			tab[poshash(p)] = true
+			p.y = p.y-1
+		end
+
+		-- tag trunks below the minimum stem height (no 2x2 and + type support)
+		for _ = tr.stem_height_min+1, r_down do
+			p.y = p.y-1
+			if not is_trunk_of_tree(tr.trees, get_node(p)) then
+				break
+			end
+			tab[poshash(p)] = true
+		end
+		-- actually only -r_down + yo - 1 to -r_down need to be added
+		p.y = y_top_trunk
+	end
 
 	-- reduce x and z avoidance range for thick stem neighbour trees
 	if tr.stem_type == "2x2" then
@@ -194,7 +215,7 @@ local function get_a_tree(pos, tab, tr, xo,yo,zo)
 		r = r - 2
 	end
 
-	-- tag places which should not be removed
+	-- tag head positions which should not be removed
 	local z1 = math.max(-r + zo, -r)
 	local z2 = math.min(r + zo, r)
 	local y1 = math.max(-r_down + yo, -r_down)
