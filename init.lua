@@ -943,7 +943,7 @@ end
 
 --------------------------- api interface --------------------------------------
 
--- the function which is used for capitating the api
+-- the function which is used for capitating the tree
 local capitating = false	--necessary if minetest.node_dig is used
 function treecapitator.capitate_tree(pos, digger)
 	if capitating

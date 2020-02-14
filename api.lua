@@ -36,9 +36,6 @@ function treecapitator.register_tree(tr)
 	end
 end
 
--- Mods can set treecapitator.capitation_usually_disallowed to true and
--- override this function, with params pos and digger, to make capitation
--- transpire only under certain contitions.
 function treecapitator.capitation_allowed()
 	return not treecapitator.capitation_usually_disallowed
 end
