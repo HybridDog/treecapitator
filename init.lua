@@ -128,7 +128,7 @@ else
 end
 
 
-table_contains = function(t, v)
+local function table_contains(t, v)
 	for i = 1,#t do
 		if t[i] == v then
 			return true
@@ -301,11 +301,11 @@ local function get_stem(trunktop_ps, trunks, tr, head_ps)
 end
 
 -- part of healthy stem searching
-local function here_neat_stemps(p, tr)
+local function here_neat_stemps(pos, tr)
 	local ps = {}
 	for i = 1,#tr.stem_offsets do
 		local o = tr.stem_offsets[i]
-		local p = {x = p.x + o[1], y = p.y, z = p.z + o[2]}
+		local p = {x = pos.x + o[1], y = pos.y, z = pos.z + o[2]}
 		-- air test is too simple (makeshift solution)
 		if get_node(p).name ~= "air" then
 			return
@@ -333,11 +333,11 @@ local function find_neat_stemps(pos, tr)
 end
 
 -- part of incomplete stem searching
-local function here_incomplete_stemps(p, tr)
+local function here_incomplete_stemps(pos, tr)
 	local ps = {}
 	for i = 1,#tr.stem_offsets do
 		local o = tr.stem_offsets[i]
-		local p = {x = p.x + o[1], y = p.y+1, z = p.z + o[2]}
+		local p = {x = pos.x + o[1], y = pos.y+1, z = pos.z + o[2]}
 		if is_trunk_of_tree(tr.trees, get_node(p)) then
 			p.y = p.y-1
 			local node = get_node(p)
@@ -606,8 +606,8 @@ function capitate_funcs.acacia(pos, tr, node_above, digger)
 		minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
 	end
 	for i = 1,n-1 do
-		local pos,node = unpack(tab[i])
-		destroy_node(pos, node, digger)
+		local pos_stem, node = unpack(tab[i])
+		destroy_node(pos_stem, node, digger)
 	end
 	return true
 end
@@ -616,33 +616,36 @@ end
 ----------------------- Palm tree function -------------------------------------
 
 -- the 17 vectors used for walking the stem
-local palm_stem_dirs = {
-	{0,1,0}
-}
-local n = 2
-for i = -1,1,2 do
-	palm_stem_dirs[n] = {i,0,0}
-	palm_stem_dirs[n+1] = {0,0,i}
-	n = n+2
-end
-for i = -1,1,2 do
-	palm_stem_dirs[n] = {i,0,i}
-	palm_stem_dirs[n+1] = {i,0,-i}
-	n = n+2
-end
-for i = -1,1,2 do
-	palm_stem_dirs[n] = {i,1,0}
-	palm_stem_dirs[n+1] = {0,1,i}
-	n = n+2
-end
-for i = -1,1,2 do
-	palm_stem_dirs[n] = {i,1,i}
-	palm_stem_dirs[n+1] = {i,1,-i}
-	n = n+2
-end
-for i = 1,17 do
-	local p = palm_stem_dirs[i]
-	palm_stem_dirs[i] = vector.new(unpack(p))
+local palm_stem_dirs
+do
+	palm_stem_dirs = {
+		{0,1,0}
+	}
+	local n = 2
+	for i = -1,1,2 do
+		palm_stem_dirs[n] = {i,0,0}
+		palm_stem_dirs[n+1] = {0,0,i}
+		n = n+2
+	end
+	for i = -1,1,2 do
+		palm_stem_dirs[n] = {i,0,i}
+		palm_stem_dirs[n+1] = {i,0,-i}
+		n = n+2
+	end
+	for i = -1,1,2 do
+		palm_stem_dirs[n] = {i,1,0}
+		palm_stem_dirs[n+1] = {0,1,i}
+		n = n+2
+	end
+	for i = -1,1,2 do
+		palm_stem_dirs[n] = {i,1,i}
+		palm_stem_dirs[n+1] = {i,1,-i}
+		n = n+2
+	end
+	for i = 1,17 do
+		local p = palm_stem_dirs[i]
+		palm_stem_dirs[i] = vector.new(unpack(p))
+	end
 end
 
 local pos_from_hash = minetest.get_position_from_hash
@@ -712,12 +715,12 @@ local function get_palm_head(hcp, tr, max_forbi)
 		end
 	end
 	local ps = {}
-	local n = 0
+	local num_leaves = 0
 	for ph in pairs(leaves) do
-		n = n+1
-		ps[n] = pos_from_hash(ph)
+		num_leaves = num_leaves+1
+		ps[num_leaves] = pos_from_hash(ph)
 	end
-	return ps,n
+	return ps, num_leaves
 end
 
 -- returns positions for palm leaves allowed to be dug
@@ -736,8 +739,8 @@ local function palm_find_valid_head_ps(pos, head_ps, tr)
 				local hcp = {x=pos.x+x, y=pos.y+y, z=pos.z+z}
 				if not vector.equals(hcp, pos)
 				and get_node(hcp).name == tr.trunk_top then
-					local leaves,n = get_palm_head(hcp, tr, 0)
-					for i = 1,n do
+					local leaves, num_leaves = get_palm_head(hcp, tr, 0)
+					for i = 1, num_leaves do
 						tab[poshash(leaves[i])] = true
 					end
 				end
@@ -757,12 +760,12 @@ local function palm_find_valid_head_ps(pos, head_ps, tr)
 	return n
 end
 
-function capitate_funcs.palm(pos, tr, node_above, digger)
+function capitate_funcs.palm(startpos, tr, node_above, digger)
 	local trunk = tr.trees[1]
 
 	-- walk the stem up to the fruit carrier
-	pos = {x=pos.x, y=pos.y+1, z=pos.z}
-	local trunks = {{pos, node_above}}
+	local pos_current = {x=startpos.x, y=startpos.y+1, z=startpos.z}
+	local trunks = {{pos_current, node_above}}
 	local trunk_found = true
 	local nohori = false
 	local hcp
@@ -773,12 +776,12 @@ function capitate_funcs.palm(pos, tr, node_above, digger)
 			local hori = i > 1 and i < 10
 			if not hori
 			or not nohori then
-				local p = vector.add(pos, palm_stem_dirs[i])
+				local p = vector.add(pos_current, palm_stem_dirs[i])
 				local node = get_node(p)
 				if node.name == trunk then
 					trunk_found = true
 					trunks[#trunks+1] = {p, node}
-					pos = p
+					pos_current = p
 					nohori = hori
 					break
 				end
@@ -811,19 +814,20 @@ function capitate_funcs.palm(pos, tr, node_above, digger)
 	local lc = palm_find_valid_head_ps(hcp, leaves_ps, tr)
 
 	if treecapitator.play_sound then
-		minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
+		minetest.sound_play("tree_falling", {pos = pos_current,
+			max_hear_distance = 32})
 	end
 
 	local nodeupdate = minetest.check_for_falling
 	minetest.check_for_falling = function() end
 	for i = 1,#fruits do
-		local pos,node = unpack(fruits[i])
+		local pos, node = unpack(fruits[i])
 		destroy_node(pos, node, digger)
 	end
 	minetest.check_for_falling = nodeupdate
 
 	for i = 1,#trunks do
-		local pos,node = unpack(trunks[i])
+		local pos, node = unpack(trunks[i])
 		destroy_node(pos, node, digger)
 	end
 
@@ -892,15 +896,15 @@ function capitate_funcs.moretrees(pos, tr, _, digger)
 	local maxy = pos.y+tr.height
 	local num_trunks = 0
 	local num_leaves = 0
-	local ps = get_tab({x=pos.x, y=pos.y+1, z=pos.z}, function(pos)
-		if pos.x < minx
-		or pos.x > maxx
-		or pos.z < minz
-		or pos.z > maxz
-		or pos.y > maxy then
+	local ps = get_tab({x=pos.x, y=pos.y+1, z=pos.z}, function(p)
+		if p.x < minx
+		or p.x > maxx
+		or p.z < minz
+		or p.z > maxz
+		or p.y > maxy then
 			return false
 		end
-		local nam = get_node(pos).name
+		local nam = get_node(p).name
 		if table_contains(trees, nam) then
 			num_trunks = num_trunks+1
 		elseif table_contains(leaves, nam) then
