@@ -391,7 +391,7 @@ if minetest.get_modpath("ethereal") then
 	})
 	treecapitator.register_tree({--moshroom [гриб]
 		trees = {"ethereal:mushroom_trunk"},
-		leaves = {"ethereal:mushroom", "ethereal:mushroom_porew"},
+		leaves = {"ethereal:mushroom", "ethereal:mushroom_pore"},
 		range = 4,
 		height = 10,
 		max_nodes = 100,
