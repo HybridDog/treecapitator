@@ -421,5 +421,13 @@ if minetest.get_modpath("ethereal") then
 		range_up = 8,
 		stem_height_min = 3,
 	})
+	treecapitator.register_tree({--frosttree
+		trees = {"ethereal:frost_tree"},
+		leaves = {"ethereal:frost_leaves"},
+		stem_type = "2x2",
+		stem_height_min = 3,
+		range = 5,
+		range_up = 19,
+	})
 
 end
