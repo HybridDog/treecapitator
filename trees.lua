@@ -401,4 +401,16 @@ if minetest.get_modpath("ethereal") then
 		num_leaves_max = 80,
 		type = "moretrees",
 	})
+	treecapitator.register_tree({--sakura
+		trees = {"ethereal:sakura_trunk"},
+		leaves = {"ethereal:sakura_leaves", "ethereal:sakura_leaves2"},
+		range = 7,
+		height = 10,
+		max_nodes = 228,
+		num_trunks_min = 0,
+		num_trunks_max = 24,
+		num_leaves_min = 0,
+		num_leaves_max = 204,
+		type = "moretrees",
+	})
 end
