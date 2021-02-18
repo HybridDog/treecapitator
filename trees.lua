@@ -436,5 +436,19 @@ if minetest.get_modpath("ethereal") then
 		range_up = 7,
 		stem_height_min = 3,
 	})
+	treecapitator.register_tree({--yellowtree
+		trees = {"ethereal:yellow_trunk"},
+		leaves = {"ethereal:yellowleaves"},
+		fruits = {"ethereal:golden_apple"},
+		range = 5,
+		height = 19,
+		max_nodes = 149,
+		num_trunks_min = 0,
+		num_trunks_max = 54,
+		num_leaves_min = 0,
+		num_leaves_max = 85,
+		stem_height_min = 13,
+		type = "moretrees",
+	})
 
 end
