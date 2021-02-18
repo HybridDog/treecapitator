@@ -450,5 +450,19 @@ if minetest.get_modpath("ethereal") then
 		stem_height_min = 13,
 		type = "moretrees",
 	})
+	treecapitator.register_tree({--olive
+		trees = {"ethereal:olive_trunk"},
+		leaves = {"ethereal:olive_leaves"},
+		fruits = {"ethereal:olive"},
+		range = 4,
+		height = 9,
+		max_nodes = 94,
+		num_trunks_min = 0,
+		num_trunks_max = 27,
+		num_leaves_min = 0,
+		num_leaves_max = 59,
+		stem_height_min = 8,
+		type = "moretrees",
+	})
 
 end
