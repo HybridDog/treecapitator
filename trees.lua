@@ -413,4 +413,13 @@ if minetest.get_modpath("ethereal") then
 		num_leaves_max = 204,
 		type = "moretrees",
 	})
+	treecapitator.register_tree({--lemon
+		trees = {"default:tree"},
+		leaves = {"ethereal:lemon_leaves"},
+		fruits = {"ethereal:lemon"},
+		range = 4,
+		range_up = 8,
+		stem_height_min = 3,
+	})
+
 end
