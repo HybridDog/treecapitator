@@ -429,5 +429,12 @@ if minetest.get_modpath("ethereal") then
 		range = 5,
 		range_up = 19,
 	})
+	treecapitator.register_tree({--birch
+		trees = {"ethereal:birch_trunk"},
+		leaves = {"ethereal:birch_leaves"},
+		range = 3,
+		range_up = 7,
+		stem_height_min = 3,
+	})
 
 end
