@@ -368,7 +368,7 @@ if minetest.get_modpath("ethereal") then
 		trees = {"ethereal:palm_trunk"},
 		leaves = {"ethereal:palmleaves"},
 		fruits = {"ethereal:coconut"},
-		range = 3,
+		range = 4,
 		height = 9,
 		max_nodes = 37,
 		num_trunks_min = 0,
