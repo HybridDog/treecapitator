@@ -1,2 +1,3 @@
-The mod is licensed under WTFPL.
-sound from http://www.freesound.org/people/ecfike/sounds/139952/, edited with audacity (WTFPL)
+The code of this mod is licensed under MIT.
+The sound from http://www.freesound.org/people/ecfike/sounds/139952/,
+edited with audacity, is licensed under CC0.
