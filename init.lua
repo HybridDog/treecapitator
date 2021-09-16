@@ -127,6 +127,17 @@ else
 	end
 end
 
+local function tree_fall_sound(pos)
+	if treecapitator.play_sound then
+		minetest.sound_play("tree_falling", {
+			gain = 0.2 + 0.2 * math.random() ^ 2,
+			pitch = 0.7 + 0.5 * math.random(),
+			pos = pos,
+			max_hear_distance = 32
+		}, true)
+	end
+end
+
 
 local function table_contains(t, v)
 	for i = 1,#t do
@@ -486,9 +497,7 @@ function capitate_funcs.default(pos, tr, _, digger)
 	end
 
 	-- tree was capitated, play sound
-	if treecapitator.play_sound then
-		minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
-	end
+	tree_fall_sound(pos)
 	return true
 end
 
@@ -602,9 +611,7 @@ function capitate_funcs.acacia(pos, tr, node_above, digger)
 	end
 
 	-- play the sound, then dig the stem
-	if treecapitator.play_sound then
-		minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
-	end
+	tree_fall_sound(pos)
 	for i = 1,n-1 do
 		local pos_stem, node = unpack(tab[i])
 		destroy_node(pos_stem, node, digger)
@@ -813,10 +820,7 @@ function capitate_funcs.palm(startpos, tr, node_above, digger)
 	local leaves_ps = {}
 	local lc = palm_find_valid_head_ps(hcp, leaves_ps, tr)
 
-	if treecapitator.play_sound then
-		minetest.sound_play("tree_falling", {pos = pos_current,
-			max_hear_distance = 32})
-	end
+	tree_fall_sound(pos_current)
 
 	local nodeupdate = minetest.check_for_falling
 	minetest.check_for_falling = function() end
@@ -928,9 +932,7 @@ function capitate_funcs.moretrees(pos, tr, _, digger)
 		print("wrong leaves num: "..num_leaves)
 		return
 	end
-	if treecapitator.play_sound then
-		minetest.sound_play("tree_falling", {pos = pos, max_hear_distance = 32})
-	end
+	tree_fall_sound(pos)
 	local inv = digger:get_inventory()
 	for _,p in pairs(ps) do
 		local node = get_node(p)
