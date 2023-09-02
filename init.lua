@@ -12,13 +12,6 @@ treecapitator = {
 	no_hand_capitation = false,
 	delay = 0,
 	stem_height_min = 3,
-	default_tree = {	--replaces not defined stuff (see below)
-		trees = {"default:tree"},
-		leaves = {"default:leaves"},
-		range = 2,
-		fruits = {},
-		type = "default",
-	},
 	after_register = {},
 }
 
