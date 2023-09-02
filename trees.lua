@@ -1,75 +1,75 @@
-local mgname = minetest.get_mapgen_setting"mg_name"
+if minetest.get_modpath("default") then
+	if minetest.get_mapgen_setting"mg_name" == "v6" then
+		treecapitator.register_tree{
+			trees = {"default:tree"},
+			leaves = {"default:leaves"},
+			range = 2,
+			fruits = {"default:apple"}
+		}
 
-if mgname == "v6" then
-	treecapitator.register_tree{
-		trees = {"default:tree"},
-		leaves = {"default:leaves"},
-		range = 2,
-		fruits = {"default:apple"}
-	}
+		treecapitator.register_tree({
+			trees = {"default:jungletree"},
+			leaves = {"default:jungleleaves"},
+			range = 3
+		})
+	else
+		treecapitator.register_tree{
+			trees = {"default:tree"},
+			leaves = {"default:leaves"},
+			range = 2,
+			range_up = 4,
+			range_down = 0,
+			fruits = {"default:apple", "default:tree"},
+			trunk_fruit_vertical = true
+		}
+
+		treecapitator.register_tree({
+			trees = {"default:jungletree"},
+			leaves = {"default:jungleleaves"},
+			fruits = {"default:jungletree"},
+			range = 4,
+			range_up = 14,
+			range_down = 5,
+			trunk_fruit_vertical = true,
+			stem_height_min = 12,
+		})
+
+		treecapitator.register_tree({
+			trees = {"default:jungletree"},
+			leaves = {"default:jungleleaves"},
+			fruits = {"default:jungletree"},
+			range = 4,
+			range_up = 14,
+			range_down = 3,
+			trunk_fruit_vertical = true,
+			stem_type = "2x2",
+			stem_height_min = 12,
+		})
+	end
 
 	treecapitator.register_tree({
-		trees = {"default:jungletree"},
-		leaves = {"default:jungleleaves"},
-		range = 3
+		trees = {"default:pine_tree"},
+		leaves = {"default:pine_needles"},
+		-- the +2 height is used to also support the coned pine trees
+		range_up = 2 +2,
+		range_down = 6,
+		range = 3,
 	})
-else
-	treecapitator.register_tree{
-		trees = {"default:tree"},
-		leaves = {"default:leaves"},
-		range = 2,
-		range_up = 4,
-		range_down = 0,
-		fruits = {"default:apple", "default:tree"},
-		trunk_fruit_vertical = true
-	}
 
 	treecapitator.register_tree({
-		trees = {"default:jungletree"},
-		leaves = {"default:jungleleaves"},
-		fruits = {"default:jungletree"},
-		range = 4,
-		range_up = 14,
-		range_down = 5,
-		trunk_fruit_vertical = true,
-		stem_height_min = 12,
+		trees = {"default:acacia_tree"},
+		leaf = "default:acacia_leaves",
+		no_param2test = true,
+		--leavesrange = 4,
+		type = "acacia"
 	})
 
 	treecapitator.register_tree({
-		trees = {"default:jungletree"},
-		leaves = {"default:jungleleaves"},
-		fruits = {"default:jungletree"},
+		trees = {"default:aspen_tree"},
+		leaves = {"default:aspen_leaves"},
 		range = 4,
-		range_up = 14,
-		range_down = 3,
-		trunk_fruit_vertical = true,
-		stem_type = "2x2",
-		stem_height_min = 12,
 	})
 end
-
-treecapitator.register_tree({
-	trees = {"default:pine_tree"},
-	leaves = {"default:pine_needles"},
-	-- the +2 height is used to also support the coned pine trees
-	range_up = 2 +2,
-	range_down = 6,
-	range = 3,
-})
-
-treecapitator.register_tree({
-	trees = {"default:acacia_tree"},
-	leaf = "default:acacia_leaves",
-	no_param2test = true,
-	--leavesrange = 4,
-	type = "acacia"
-})
-
-treecapitator.register_tree({
-	trees = {"default:aspen_tree"},
-	leaves = {"default:aspen_leaves"},
-	range = 4,
-})
 
 if minetest.get_modpath("farming_plus") then
 	treecapitator.register_tree({
