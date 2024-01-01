@@ -1,3 +1,66 @@
+if minetest.get_modpath("mcl_core") then
+	treecapitator.register_tree({
+		trees = {"mcl_core:acaciatree"},
+		leaves = {"mcl_core:acacialeaves"},
+		range = 3,
+	})
+
+	treecapitator.register_tree{
+		trees = {"mcl_core:tree"},
+		leaves = {"mcl_core:leaves"},
+		range = 2,
+		fruits = {"mcl_core:apple"}
+	}
+	--mcl_core:birchleaves
+
+	treecapitator.register_tree{
+		trees = {"mcl_core:birchtree"},
+		leaves = {"mcl_core:birchleaves"},
+		range = 3,
+	}
+	-- mcl_core:darkleaves
+
+	treecapitator.register_tree{
+		trees = {"mcl_core:darktree"},
+		leaves = {"mcl_core:darkleaves"},
+		range = 4,
+	}
+	-- mcl_core:jungleleaves
+
+	treecapitator.register_tree{
+		trees = {"mcl_core:jungletree"},
+		leaves = {"mcl_core:jungleleaves"},
+		fruits = {"mcl_core:jungletree"},
+		range = 4,
+		range_up = 14,
+		range_down = 5,
+		trunk_fruit_vertical = true,
+		stem_height_min = 12,
+	}
+	--mcl_core:spruceleaves
+
+	treecapitator.register_tree{
+		trees = {"mcl_core:sprucetree"},
+		leaves = {"mcl_core:spruceleaves"},
+		range = 3,
+	}
+	--mcl_mangrove:mangroveleaves
+
+	treecapitator.register_tree{
+		trees = {"mcl_mangrove:mangrove_tree"},
+		leaves = {"mcl_mangrove:mangroveleaves"},
+		range = 3,
+	}
+	--mcl_cherry_blossom:cherrytree, mcl_cherry_blossom:cherryleaves
+
+	treecapitator.register_tree{
+		trees = {"mcl_cherry_blossom:cherrytree"},
+		leaves = {"mcl_cherry_blossom:cherryleaves"},
+		range = 3,
+	}
+
+end
+
 if minetest.get_modpath("default") then
 	if minetest.get_mapgen_setting"mg_name" == "v6" then
 		treecapitator.register_tree{
