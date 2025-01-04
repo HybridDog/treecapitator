@@ -1,10 +1,14 @@
-[Mod] treecapitator [treecapitator]
+With the treecapitator mod for Luanti,
+when a player digs part of a tree's stem, the whole tree is felled at once.
 
-This mod is makes digging a trunk node of a tree destroy the whole tree
-including the leaves and the fruits. There are many settings, such as dropping
-no leaves but only saplings (as leafdecay does it).<br/>
-Holding shift you can avoid its function to dig the single trunk node.<br/>
-Neighbour trees are detected and preserved.<br/>
+There are many settings, for example an option to control whether leaves are
+dropped, too, or only saplings, resembling leafdecay behaviour.
+Support for moretrees is disabled by default and can be enabled with a setting.
+
+If players want to dig single trunk nodes instead of whole trees, they can hold
+the shift key.
+When felling a tree, neighbouring trees are detected and left unharmed.
+
 This mod is based on Jeja's timber mod, however, the code was revised over and
 over, so it became a different mod (according to the
 [broom theory](https://www.youtube.com/watch?v=51n-EBigXmg) that is).<br/>
